@@ -3,7 +3,6 @@ import type { Options } from 'pino-http';
 
 const NIVELES_DE_LOG = ['trace', 'debug', 'info', 'warn', 'error', 'fatal'];
 
-// Lee LOG_LEVEL del entorno (por defecto `info`). Si el valor no es válido falla al arrancar.
 export function obtenerNivelDeLog(valor: string | undefined): string {
   const nivel = valor ?? 'info';
 

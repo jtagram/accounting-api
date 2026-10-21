@@ -2,8 +2,6 @@ import archiver from 'archiver';
 import type { Readable } from 'node:stream';
 import type { ArchivoDeTexto } from './archivo-de-texto.js';
 
-// Comprime el contenido de la carpeta dentro de una carpeta `nombreEnZip` del ZIP,
-// junto con los archivos de texto indicados.
 export function comprimirCarpeta(
   carpeta: string,
   nombreEnZip: string,

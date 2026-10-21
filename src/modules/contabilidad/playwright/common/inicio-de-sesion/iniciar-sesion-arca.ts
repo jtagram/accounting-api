@@ -1,71 +1,114 @@
-import type { Page } from 'playwright';
-import type { Logger } from 'nestjs-pino';
-import { construirErrorParaLog } from '../errores/construir-error-para-log.js';
+import { Injectable } from "@nestjs/common";
+import { Logger } from "nestjs-pino";
+import { Page } from "playwright/types/test";
 
-export async function iniciarSesionArca(logger: Logger, pagina: Page, usuario: string, clave: string): Promise<string> {
-  try {
-    await pagina.goto('https://auth.afip.gob.ar/contribuyente_/login.xhtml');
+@Injectable()
+export class IniciarSesionArca {
+    constructor(private readonly logger: Logger) {}
+    public async iniciarSesionArca(pagina: Page, cuit: string, claveFiscal: string): Promise<string> {
 
-    await pagina.locator('[id="F1:username"]').fill(usuario);
+        await this.irAPaginaARCA(pagina);
 
-    await pagina.locator('[id="F1:btnSiguiente"]').click();
+        const nombre = await this.iniciarSesion(pagina, cuit, claveFiscal);
 
-    await pagina.locator('[id="F1:password"]').fill(clave);
+        await this.verificarErrorDeInicioDeSesion(pagina);
 
-    await pagina.locator('[id="F1:btnIngresar"]').click();
+        await this.irAPaginaMisServicios(pagina);
 
-    const nombre = await confirmarInicioDeSesion(logger, pagina, usuario);
-
-    if (nombre) return nombre;
-
-    await verificarErrorDeInicioDeSesion(logger, pagina);
-
-    throw new Error('No se pudo confirmar el login');
-  } catch (error) {
-    logger.error({ err: construirErrorParaLog(error), msg: 'No se pudo iniciar sesión en ARCA' });
-    throw error;
-  }
-}
-
-async function confirmarInicioDeSesion(logger: Logger, pagina: Page, usuario: string): Promise<string | null> {
-  try {
-    const localizadorNombre = pagina.locator('#usernav strong.text-primary');
-    const localizadorCuit = pagina.locator('#usernav .numeroCuit');
-
-    await localizadorNombre.waitFor({ state: 'visible' });
-
-    const nombre = (await localizadorNombre.innerText()).trim();
-    const cuit = (await localizadorCuit.innerText()).trim().replace(/-/g, '').replace(/[\[\]]/g, '');
-
-    if (cuit !== usuario) {
-      throw new Error(`El CUIT logueado (${cuit}) no coincide con el usuario (${usuario})`);
+        return nombre;
     }
 
-    logger.log({ nombre, cuit, msg: 'Login exitoso' });
-    return nombre;
-  } catch (error) {
-    logger.error({ err: construirErrorParaLog(error), msg: 'No se pudo confirmar el login' });
-    return null;
-  }
-
-}
-
-async function verificarErrorDeInicioDeSesion(logger: Logger, pagina: Page): Promise<void> {
-  try {
-    const mensajeError = pagina.locator('#F1\\:msg');
-    if (await mensajeError.isVisible({ timeout: 5000 }).catch(() => false)) {
-      const texto = await mensajeError.innerText();
-
-      if (texto.trim() === 'Clave o usuario incorrecto') {
-        logger.error({ msg: 'Clave o usuario incorrecto' });
-        throw new Error('Clave o usuario incorrecto');
+    private async irAPaginaARCA(pagina: Page): Promise<void> {
+      try {
+        await pagina.goto('https://www.arca.gob.ar/');
+    
+        await pagina.getByRole('link', { name: 'Iniciar sesión' }).waitFor({ state: 'visible' });
+    
+        this.logger.log('Página de ARCA abierta');
+      } catch (error) {
+        this.logger.error({ err: error, msg: 'No se pudo abrir ARCA' });
+        throw new Error('No se pudo abrir ARCA', { cause: error });
       }
-
-      throw new Error('Error de login desconocido: ' + texto);
     }
-  } catch (error) {
-    logger.error({ err: construirErrorParaLog(error), msg: 'No se pudo verificar el error de inicio de sesión' });
-    throw error;
-  }
-}
 
+    private async iniciarSesion(pagina: Page, cuit: string, claveFiscal: string): Promise<string> {
+      try {
+        await pagina.goto('https://auth.afip.gob.ar/contribuyente_/login.xhtml');
+    
+        await pagina.locator('[id="F1:username"]').fill(cuit);
+    
+        await pagina.locator('[id="F1:btnSiguiente"]').click();
+    
+        await pagina.locator('[id="F1:password"]').fill(claveFiscal);
+    
+        await pagina.locator('[id="F1:btnIngresar"]').click();
+    
+        const nombre = await this.confirmarInicioDeSesion(pagina, cuit);
+    
+        if (nombre) return nombre;
+    
+        throw new Error('No se pudo confirmar el login');
+      } catch (error) {
+        this.logger.error({ err: error, msg: 'No se pudo iniciar sesión en ARCA' });
+        throw new Error('No se pudo iniciar sesión en ARCA', { cause: error });
+      }
+    }
+    
+    private async confirmarInicioDeSesion(pagina: Page, cuit: string): Promise<string | null> {
+      try {
+        const localizadorNombre = pagina.locator('#usernav strong.text-primary');
+        const localizadorCuit = pagina.locator('#usernav .numeroCuit');
+    
+        await localizadorNombre.waitFor({ state: 'visible' });
+    
+        const nombre = (await localizadorNombre.innerText()).trim();
+        const cuitDePagina = (await localizadorCuit.innerText()).trim().replace(/-/g, '').replace(/[\[\]]/g, '');
+    
+        if (cuitDePagina !== cuit) {
+          throw new Error(`El CUIT logueado (${cuitDePagina}) no coincide con el usuario (${cuit})`);
+        }
+    
+        this.logger.log('Login exitoso' );
+        return nombre;
+      } catch (error) {
+        this.logger.error({ err: error, msg: 'No se pudo confirmar el login' });
+        return null;
+      }
+    
+    }
+    
+    private async verificarErrorDeInicioDeSesion(pagina: Page): Promise<void> {
+      try {
+        const mensajeError = pagina.locator('#F1\\:msg');
+        if (await mensajeError.isVisible({ timeout: 5000 }).catch(() => false)) {
+          const texto = await mensajeError.innerText();
+    
+          if (texto.trim() === 'Clave o usuario incorrecto') {
+            this.logger.error('Clave o usuario incorrecto');
+            throw new Error('Clave o usuario incorrecto');
+          }
+    
+          this.logger.error('Error de login desconocido: ' + texto);
+          throw new Error('Error de login desconocido: ' + texto);
+        }
+      } catch (error) {
+        this.logger.error({ err: error, msg: 'No se pudo verificar el error de inicio de sesión' });
+        throw new Error('No se pudo verificar el error de inicio de sesión' , { cause: error });
+      }
+    }
+
+    private async irAPaginaMisServicios( pagina: Page): Promise<void> {
+      try {
+        await pagina.locator('a[href="/portal/app/mis-servicios"]').click();
+    
+        await pagina.getByRole('heading', { level: 3, name: 'Mis servicios', exact: true }).waitFor({ state: 'visible' });
+    
+        await pagina.waitForLoadState('networkidle');
+    
+        this.logger.log({ msg: 'Mis servicios abierto' });
+      } catch (error) {
+        this.logger.error({ err: error, msg: 'No se pudo abrir Mis servicios' });
+        throw new Error('No se pudo abrir Mis servicios', { cause: error });
+      }
+    }
+}

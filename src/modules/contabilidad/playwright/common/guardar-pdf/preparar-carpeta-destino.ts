@@ -3,7 +3,6 @@ import type { Logger } from 'nestjs-pino';
 import { obtenerCarpetaDestino } from './carpeta-destino.js';
 import { construirErrorParaLog } from '../errores/construir-error-para-log.js';
 
-// Deja la carpeta del cliente vacía para que el ZIP solo tenga los PDFs de esta ejecución.
 export async function prepararCarpetaDestino(logger: Logger, nombrePersona: string): Promise<string> {
   try {
     const carpetaDestino = obtenerCarpetaDestino(nombrePersona);

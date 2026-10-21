@@ -1,32 +1,30 @@
 import { copyFile, mkdir, rm } from 'node:fs/promises';
-import { basename, extname, join } from 'node:path';
-import type { Logger } from 'nestjs-pino';
+import { basename, join } from 'node:path';
+import { Injectable } from '@nestjs/common';
+import { Logger } from 'nestjs-pino';
 import { obtenerCarpetaDestino } from './carpeta-destino.js';
 import { construirErrorParaLog } from '../errores/construir-error-para-log.js';
 
-export async function guardarPdf(
-  logger: Logger,
-  rutaPdf: string,
-  nombrePersona: string,
-  nombreDescriptivo?: string,
-): Promise<void> {
-  try {
-    const carpetaDestino = obtenerCarpetaDestino(nombrePersona);
+@Injectable()
+export class GuardarPdf {
+  constructor(private readonly logger: Logger) {}
 
-    await mkdir(carpetaDestino, { recursive: true });
+  async guardarPdf(ruta: string, nombrePersona: string): Promise<void> {
+    try {
+      const carpetaDestino = obtenerCarpetaDestino(nombrePersona);
 
-    const nombreBase = nombreDescriptivo ?? basename(rutaPdf);
-    const nombreArchivo = extname(nombreBase) ? nombreBase : `${nombreBase}.pdf`;
-    const destino = join(carpetaDestino, nombreArchivo);
+      await mkdir(carpetaDestino, { recursive: true });
 
-    await copyFile(rutaPdf, destino);
+      const nombreArchivo = basename(ruta);
 
-    // El original es un temporal (de Playwright o de os.tmpdir()): ya no hace falta.
-    await rm(rutaPdf, { force: true });
+      await copyFile(ruta, join(carpetaDestino, nombreArchivo));
 
-    logger.log({ nombreArchivo, msg: 'PDF guardado' });
-  } catch (error) {
-    logger.error({ err: construirErrorParaLog(error), nombreDescriptivo, msg: 'No se pudo guardar el PDF' });
-    throw error;
+      await rm(ruta, { force: true });
+
+      this.logger.log({ nombreArchivo, msg: 'Archivo guardado' });
+    } catch (error) {
+      this.logger.error({ err: construirErrorParaLog(error), ruta, msg: 'No se pudo guardar el archivo' });
+      throw error;
+    }
   }
 }

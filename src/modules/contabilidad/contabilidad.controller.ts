@@ -44,7 +44,6 @@ export class ContabilidadController {
   }
 
   private responderConZip({ nombre, exito, zip }: RespuestaEjecucion, respuesta: Response): StreamableFile {
-    // Si algo falló el ZIP trae solo el error, pero el status lo deja en evidencia.
     respuesta.status(exito ? HttpStatus.CREATED : HttpStatus.INTERNAL_SERVER_ERROR);
 
     return new StreamableFile(zip, {

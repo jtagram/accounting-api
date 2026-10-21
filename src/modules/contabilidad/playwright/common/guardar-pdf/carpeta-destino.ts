@@ -2,7 +2,6 @@ import { existsSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 
-// Ubuntu en español usa ~/Descargas; Windows (y Linux en inglés) usan ~/Downloads.
 const carpetaDescargas = existsSync(join(homedir(), 'Descargas'))
   ? join(homedir(), 'Descargas')
   : join(homedir(), 'Downloads');
