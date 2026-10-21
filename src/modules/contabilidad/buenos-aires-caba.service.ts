@@ -4,6 +4,7 @@ import { chromium, type Browser } from 'playwright';
 import { iniciarSesionArca } from './playwright/common/inicio-de-sesion/iniciar-sesion-arca.js';
 import { irAPaginaARCA } from './playwright/common/inicio-de-sesion/ir-a-pagina-arca.js';
 import { irAPaginaMisServicios } from './playwright/common/mis-servicios/ir-a-pagina-mis-servicios.js';
+import { obtenerOpcionesDeLanzamiento } from './playwright/common/navegador/obtener-opciones-de-lanzamiento.js';
 import { guardarPdf } from './playwright/common/guardar-pdf/guardar-pdf.js';
 import { sanitizarNombre } from './playwright/common/guardar-pdf/carpeta-destino.js';
 import { prepararCarpetaDestino } from './playwright/common/guardar-pdf/preparar-carpeta-destino.js';
@@ -34,11 +35,7 @@ export class BuenosAiresCabaService {
     let nombre = usuario;
 
     try {
-      navegador = await chromium.launch({
-        // Oculto por defecto (servidor); PLAYWRIGHT_HEADLESS=false lo muestra para depurar en local.
-        headless: process.env.PLAYWRIGHT_HEADLESS !== 'false',
-        slowMo: 100,
-      });
+      navegador = await chromium.launch(obtenerOpcionesDeLanzamiento());
 
       const contexto = await navegador.newContext();
 
