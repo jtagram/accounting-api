@@ -5,6 +5,7 @@ import { iniciarSesionArca } from './playwright/common/inicio-de-sesion/iniciar-
 import { irAPaginaARCA } from './playwright/common/inicio-de-sesion/ir-a-pagina-arca.js';
 import { irAPaginaMisServicios } from './playwright/common/mis-servicios/ir-a-pagina-mis-servicios.js';
 import { obtenerOpcionesDeLanzamiento } from './playwright/common/navegador/obtener-opciones-de-lanzamiento.js';
+import { crearContexto } from './playwright/common/navegador/crear-contexto.js';
 import { guardarPdf } from './playwright/common/guardar-pdf/guardar-pdf.js';
 import { sanitizarNombre } from './playwright/common/guardar-pdf/carpeta-destino.js';
 import { prepararCarpetaDestino } from './playwright/common/guardar-pdf/preparar-carpeta-destino.js';
@@ -37,7 +38,7 @@ export class BuenosAiresService {
     try {
       navegador = await chromium.launch(obtenerOpcionesDeLanzamiento());
 
-      const contexto = await navegador.newContext();
+      const contexto = await crearContexto(navegador);
 
       const pagina = await contexto.newPage();
 
