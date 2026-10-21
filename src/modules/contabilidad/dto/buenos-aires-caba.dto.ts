@@ -3,31 +3,31 @@ import { IsNotEmpty, IsString, Matches } from 'class-validator';
 
 export class BuenosAiresCabaDto {
   @ApiProperty({
-    description: 'Usuario de ARCA: el CUIT del cliente, sin guiones. También es el usuario con el que se ingresa a AGIP.',
+    description: 'CUIT del cliente, sin guiones. Es el usuario de ARCA y también el de AGIP.',
     example: '20123456789',
   })
-  @Matches(/\S/, { message: 'ARCA_USERNAME no puede contener solo espacios' })
-  @IsString({ message: 'ARCA_USERNAME debe ser un texto' })
-  @IsNotEmpty({ message: 'ARCA_USERNAME es obligatorio' })
-  ARCA_USERNAME!: string;
+  @Matches(/\S/, { message: 'cuit no puede contener solo espacios' })
+  @IsString({ message: 'cuit debe ser un texto' })
+  @IsNotEmpty({ message: 'cuit es obligatorio' })
+  cuit!: string;
 
   @ApiProperty({
     description: 'Clave fiscal de ARCA del cliente.',
     example: 'clave-fiscal',
     format: 'password',
   })
-  @Matches(/\S/, { message: 'ARCA_PASSWORD no puede contener solo espacios' })
-  @IsString({ message: 'ARCA_PASSWORD debe ser un texto' })
-  @IsNotEmpty({ message: 'ARCA_PASSWORD es obligatorio' })
-  ARCA_PASSWORD!: string;
+  @Matches(/\S/, { message: 'claveFiscal no puede contener solo espacios' })
+  @IsString({ message: 'claveFiscal debe ser un texto' })
+  @IsNotEmpty({ message: 'claveFiscal es obligatorio' })
+  claveFiscal!: string;
 
   @ApiProperty({
     description: 'Clave de AGIP (Clave Ciudad) del cliente.',
     example: 'clave-ciudad',
     format: 'password',
   })
-  @Matches(/\S/, { message: 'AGIP_CLAVE no puede contener solo espacios' })
-  @IsString({ message: 'AGIP_CLAVE debe ser un texto' })
-  @IsNotEmpty({ message: 'AGIP_CLAVE es obligatorio' })
-  AGIP_CLAVE!: string;
+  @Matches(/\S/, { message: 'claveCiudad no puede contener solo espacios' })
+  @IsString({ message: 'claveCiudad debe ser un texto' })
+  @IsNotEmpty({ message: 'claveCiudad es obligatorio' })
+  claveCiudad!: string;
 }

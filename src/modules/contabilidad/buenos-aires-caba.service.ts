@@ -32,7 +32,7 @@ export class BuenosAiresCabaService {
     private readonly declaracionJuradaAgip: DeclaracionJuradaAgip,
   ) {}
 
-  async ejecutarBuenosAiresCaba(cuit: string, claveFiscal: string, claveAgip: string): Promise<RespuestaEjecucion> {
+  async ejecutarBuenosAiresCaba(cuit: string, claveFiscal: string, claveCiudad: string): Promise<RespuestaEjecucion> {
     let navegador: Browser | undefined;
 
     try {
@@ -51,7 +51,7 @@ export class BuenosAiresCabaService {
         await this.acuseDeRecibo.obtenerAcuseDeRecibo(contexto, pagina),
         await this.pagoMonotributo.obtenerPagoMonotributo(contexto, pagina),
         await this.pagoConvenioMultilateral.obtenerPagoConvenioMultilateral(contexto, pagina),
-        await this.declaracionJuradaAgip.obtenerDeclaracionJuradaAGIP(contexto, cuit, claveAgip),
+        await this.declaracionJuradaAgip.obtenerDeclaracionJuradaAGIP(contexto, cuit, claveCiudad),
       ];
 
       const carpeta = await prepararCarpetaDestino(this.logger, nombre);
@@ -76,7 +76,7 @@ export class BuenosAiresCabaService {
 
   private obtenerOpcionesDeLanzamiento(): LaunchOptions {
     return {
-      headless: false,
+      headless: process.env.PLAYWRIGHT_HEADLESS !== 'false',
       slowMo: 100,
     };
   }

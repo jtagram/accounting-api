@@ -23,7 +23,7 @@ export class ContabilidadController {
     @Body() dto: BuenosAiresDto,
     @Res({ passthrough: true }) respuesta: Response,
   ): Promise<StreamableFile> {
-    const resultado = await this.buenosAiresService.ejecutarBuenosAires(dto.ARCA_USERNAME, dto.ARCA_PASSWORD);
+    const resultado = await this.buenosAiresService.ejecutarBuenosAires(dto.cuit, dto.claveFiscal);
 
     return this.responderConZip(resultado, respuesta);
   }
@@ -35,9 +35,9 @@ export class ContabilidadController {
     @Res({ passthrough: true }) respuesta: Response,
   ): Promise<StreamableFile> {
     const resultado = await this.buenosAiresCabaService.ejecutarBuenosAiresCaba(
-      dto.ARCA_USERNAME,
-      dto.ARCA_PASSWORD,
-      dto.AGIP_CLAVE,
+      dto.cuit,
+      dto.claveFiscal,
+      dto.claveCiudad,
     );
 
     return this.responderConZip(resultado, respuesta);

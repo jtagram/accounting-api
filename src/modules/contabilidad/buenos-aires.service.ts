@@ -76,7 +76,7 @@ export class BuenosAiresService {
 
   private obtenerOpcionesDeLanzamiento(): LaunchOptions {
     return {
-      headless: false,
+      headless: process.env.PLAYWRIGHT_HEADLESS !== 'false',
       slowMo: 100,
     };
   }

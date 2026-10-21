@@ -17,16 +17,15 @@ function respuestasComunes(declaracionJurada: string) {
   return applyDecorators(
     ApiCreatedResponse({
       description:
-        'Descarga `<Cliente>.zip`. Adentro hay una carpeta con el nombre del cliente que contiene los PDFs ' +
-        `que el cliente tiene (comprobantes emitidos y recibidos, retenciones, acuse de recibo, monotributo, convenio multilateral y ${declaracionJurada}) ` +
-        'y un `resumen.txt` que indica cuáles se descargaron y cuáles el cliente no tiene, con el motivo.',
+        'Descarga `<Cliente>.zip`. Adentro hay una carpeta con el nombre del cliente que contiene un archivo por cada ' +
+        `documento (comprobantes emitidos y recibidos, retenciones, acuse de recibo, monotributo, convenio multilateral y ${declaracionJurada}): ` +
+        'el PDF si se descargó, `<documento>-no-tiene.txt` si el cliente no lo tiene, o `<documento>-error.txt` con el stack trace si falló.',
       content: CONTENIDO_ZIP,
     }),
     ApiInternalServerErrorResponse({
       description:
         'Falló la ejecución (por ejemplo, credenciales incorrectas o un cambio en el portal). Descarga igualmente un ' +
-        '`<Cliente>.zip` con una carpeta del cliente que contiene únicamente `error.txt` con el stack trace, sin ningún PDF. ' +
-        'Si el error ocurre antes del login, la carpeta y el ZIP se llaman como el usuario (CUIT).',
+        '`<CUIT>.zip` con una carpeta que contiene únicamente `<CUIT>.txt` con el stack trace, sin ningún PDF.',
       content: CONTENIDO_ZIP,
     }),
     ApiBadRequestResponse({
@@ -51,7 +50,7 @@ export function ApiBuenosAiresCaba() {
       summary: 'Clientes que trabajan en Buenos Aires y CABA',
       description:
         'Descarga los PDFs del mes anterior desde ARCA. La declaración jurada se obtiene de AGIP, ' +
-        `ingresando con el usuario de ARCA (el CUIT) y la clave de AGIP. ${DURACION}`,
+        `ingresando con el usuario de ARCA (el CUIT) y la clave ciudad. ${DURACION}`,
     }),
     respuestasComunes('declaración jurada de AGIP'),
   );
