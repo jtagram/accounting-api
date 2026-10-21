@@ -1,6 +1,8 @@
 import type { Page } from 'playwright';
+import type { Logger } from 'nestjs-pino';
+import { construirErrorParaLog } from '../../../common/errores/construir-error-para-log.js';
 
-export async function irAPaginaComprobantesRecibidos(pagina: Page): Promise<void> {
+export async function irAPaginaComprobantesRecibidos(logger: Logger, pagina: Page): Promise<void> {
   try {
     await pagina.locator('#btnRecibidos').click();
 
@@ -8,9 +10,9 @@ export async function irAPaginaComprobantesRecibidos(pagina: Page): Promise<void
       state: 'visible',
     });
 
-    console.log('Comprobantes Recibidos abierto');
+    logger.log({ msg: 'Comprobantes Recibidos abierto' });
   } catch (error) {
-    console.error('No se pudo abrir Comprobantes Recibidos', error);
+    logger.error({ err: construirErrorParaLog(error), msg: 'No se pudo abrir Comprobantes Recibidos' });
     throw new Error('No se pudo abrir Comprobantes Recibidos', { cause: error });
   }
 }

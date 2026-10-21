@@ -1,12 +1,14 @@
 import type { Page } from 'playwright';
+import type { Logger } from 'nestjs-pino';
+import { construirErrorParaLog } from '../../../common/errores/construir-error-para-log.js';
 
-export async function esperarResultadosDeBusqueda(pagina: Page): Promise<void> {
+export async function esperarResultadosDeBusqueda(logger: Logger, pagina: Page): Promise<void> {
   try {
     await pagina.waitForLoadState('networkidle');
 
-    console.log('Resultados de la búsqueda cargados');
+    logger.log({ msg: 'Resultados de la búsqueda cargados' });
   } catch (error) {
-    console.error('No se pudieron cargar los resultados de la búsqueda', error);
+    logger.error({ err: construirErrorParaLog(error), msg: 'No se pudieron cargar los resultados de la búsqueda' });
     throw new Error('No se pudieron cargar los resultados de la búsqueda', { cause: error });
   }
 }

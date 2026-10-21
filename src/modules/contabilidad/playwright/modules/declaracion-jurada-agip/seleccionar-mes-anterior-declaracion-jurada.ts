@@ -1,15 +1,17 @@
 import type { Page } from 'playwright';
+import type { Logger } from 'nestjs-pino';
+import { construirErrorParaLog } from '../../common/errores/construir-error-para-log.js';
 
 // Cada fila de la grilla de e-Sicol tiene: [ícono, estado, período (YYYY-MM),
 // fecha, fecha, tipo]. Buscamos la DDJJ presentada cuyo período es el mes pasado.
-export async function seleccionarMesAnteriorDeclaracionJurada(pagina: Page): Promise<boolean> {
+export async function seleccionarMesAnteriorDeclaracionJurada(logger: Logger, pagina: Page): Promise<boolean> {
   try {
     const mesPasadoFecha = new Date();
     mesPasadoFecha.setDate(1);
     mesPasadoFecha.setMonth(mesPasadoFecha.getMonth() - 1);
     const periodoBuscado = `${mesPasadoFecha.getFullYear()}-${String(mesPasadoFecha.getMonth() + 1).padStart(2, '0')}`;
 
-    console.log(`Período de DDJJ a buscar en e-Sicol: ${periodoBuscado}`);
+    logger.log({ periodo: periodoBuscado, msg: 'Período de DDJJ a buscar en e-Sicol' });
 
     const filaMesPasado = pagina
       .locator('tr.x-grid-row')
@@ -18,17 +20,17 @@ export async function seleccionarMesAnteriorDeclaracionJurada(pagina: Page): Pro
       .first();
 
     if ((await filaMesPasado.count()) === 0) {
-      console.log(`No se encontró una DDJJ presentada para el período ${periodoBuscado}`);
+      logger.log({ periodo: periodoBuscado, msg: 'No se encontró una DDJJ presentada para el período' });
       return false;
     }
 
     await filaMesPasado.click();
 
-    console.log(`DDJJ del período ${periodoBuscado} seleccionada`);
+    logger.log({ periodo: periodoBuscado, msg: 'DDJJ del período seleccionada' });
 
     return true;
   } catch (error) {
-    console.error('No se pudo seleccionar la DDJJ del mes pasado', error);
+    logger.error({ err: construirErrorParaLog(error), msg: 'No se pudo seleccionar la DDJJ del mes pasado' });
     throw new Error('No se pudo seleccionar la DDJJ del mes pasado', { cause: error });
   }
 }

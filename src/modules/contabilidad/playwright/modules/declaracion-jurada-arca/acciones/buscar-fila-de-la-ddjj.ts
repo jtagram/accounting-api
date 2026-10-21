@@ -1,9 +1,11 @@
 import type { Page } from 'playwright';
+import type { Logger } from 'nestjs-pino';
+import { construirErrorParaLog } from '../../../common/errores/construir-error-para-log.js';
 import type { CriterioDeBusqueda } from './obtener-criterio-de-busqueda.js';
 
 // Devuelve el índice de la fila de la DDJJ mensual del anticipo buscado,
 // creada en el mes actual, o null si no existe.
-export async function buscarFilaDeLaDdjj(pagina: Page, criterio: CriterioDeBusqueda): Promise<number | null> {
+export async function buscarFilaDeLaDdjj(logger: Logger, pagina: Page, criterio: CriterioDeBusqueda): Promise<number | null> {
   try {
     const filas = pagina.locator('#tableMensualDj tbody tr');
     const cantidad = await filas.count();
@@ -21,13 +23,17 @@ export async function buscarFilaDeLaDdjj(pagina: Page, criterio: CriterioDeBusqu
       const esAnticipoMesPasado = anticipoYYYYMM === criterio.anticipoBuscado;
 
       if (esMesActual && esAnticipoMesPasado) {
+        logger.log({ indiceFila: i, anticipoBuscado: criterio.anticipoBuscado, msg: 'Fila de la DDJJ mensual encontrada' });
+
         return i;
       }
     }
 
+    logger.log({ anticipoBuscado: criterio.anticipoBuscado, filasRevisadas: cantidad, msg: 'Fila de la DDJJ mensual no encontrada' });
+
     return null;
   } catch (error) {
-    console.error('No se pudo buscar la fila de la DDJJ mensual', error);
+    logger.error({ err: construirErrorParaLog(error), msg: 'No se pudo buscar la fila de la DDJJ mensual' });
     throw new Error('No se pudo buscar la fila de la DDJJ mensual', { cause: error });
   }
 }

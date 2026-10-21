@@ -1,10 +1,12 @@
+import type { Logger } from 'nestjs-pino';
+
 export interface CriterioDeBusqueda {
   anticipoBuscado: string;
   mesActual: number;
   anioActual: number;
 }
 
-export function obtenerCriterioDeBusqueda(): CriterioDeBusqueda {
+export function obtenerCriterioDeBusqueda(logger: Logger): CriterioDeBusqueda {
   const hoy = new Date();
   const mesActual = hoy.getMonth() + 1;
   const anioActual = hoy.getFullYear();
@@ -13,7 +15,7 @@ export function obtenerCriterioDeBusqueda(): CriterioDeBusqueda {
   mesPasadoFecha.setMonth(mesPasadoFecha.getMonth() - 1);
   const anticipoBuscado = `${mesPasadoFecha.getFullYear()}${String(mesPasadoFecha.getMonth() + 1).padStart(2, '0')}`;
 
-  console.log(`Anticipo a buscar: ${anticipoBuscado}, fecha de creación del mes ${mesActual}/${anioActual}`);
+  logger.log({ anticipoBuscado, mesActual, anioActual, msg: 'Criterio de búsqueda de la DDJJ' });
 
   return { anticipoBuscado, mesActual, anioActual };
 }

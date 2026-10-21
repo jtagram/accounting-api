@@ -1,6 +1,8 @@
 import type { BrowserContext, Page } from 'playwright';
+import type { Logger } from 'nestjs-pino';
+import { construirErrorParaLog } from '../../../common/errores/construir-error-para-log.js';
 
-export async function irAPaginaDdjjYPagos(contexto: BrowserContext, pagina: Page): Promise<Page> {
+export async function irAPaginaDdjjYPagos(logger: Logger, contexto: BrowserContext, pagina: Page): Promise<Page> {
   try {
     const [paginaDdjj] = await Promise.all([
       contexto.waitForEvent('page'),
@@ -19,11 +21,11 @@ export async function irAPaginaDdjjYPagos(contexto: BrowserContext, pagina: Page
       await botonEntendido.click();
     }
 
-    console.log('Presentación de DDJJ y Pagos abierto');
+    logger.log({ msg: 'Presentación de DDJJ y Pagos abierto' });
 
     return paginaDdjj;
   } catch (error) {
-    console.error('No se pudo abrir Presentación de DDJJ y Pagos', error);
+    logger.error({ err: construirErrorParaLog(error), msg: 'No se pudo abrir Presentación de DDJJ y Pagos' });
     throw new Error('No se pudo abrir Presentación de DDJJ y Pagos', { cause: error });
   }
 }

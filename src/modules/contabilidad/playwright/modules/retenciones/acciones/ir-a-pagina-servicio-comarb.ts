@@ -1,11 +1,13 @@
 import type { BrowserContext, Page } from 'playwright';
+import type { Logger } from 'nestjs-pino';
+import { construirErrorParaLog } from '../../../common/errores/construir-error-para-log.js';
 
 // Los servicios de Comisión Arbitral (comarb.gob.ar) se abren con el mismo
 // handshake SSO: pedimos el servicio, pedimos la autorización (sign/token),
 // posteamos eso contra la URL del servicio y navegamos a donde nos redirija.
 // El window.open propio del portal para estos servicios no llega a abrirse
 // en este entorno, así que lo hacemos nosotros directo por la API.
-export async function irAPaginaServicioComarb(contexto: BrowserContext, pagina: Page, nombreServicio: string): Promise<Page> {
+export async function irAPaginaServicioComarb(logger: Logger, contexto: BrowserContext, pagina: Page, nombreServicio: string): Promise<Page> {
   try {
     const cuit = (await pagina.locator('#usernav .numeroCuit').innerText())
       .trim()
@@ -71,11 +73,15 @@ export async function irAPaginaServicioComarb(contexto: BrowserContext, pagina: 
       throw new Error(`Respuesta inesperada del POST de autenticación SSO: ${respuestaSso.status()}`);
     }
 
-    console.log(`${nombreServicio} abierto (autenticación directa vía SSO)`);
+    logger.log({ cuit, nombreServicio, msg: `${nombreServicio} abierto (autenticación directa vía SSO)` });
 
     return paginaServicio;
   } catch (error) {
-    console.error(`No se pudo abrir el servicio ${nombreServicio}`, error);
+    logger.error({
+      err: construirErrorParaLog(error),
+      nombreServicio,
+      msg: `No se pudo abrir el servicio ${nombreServicio}`,
+    });
     throw new Error(`No se pudo abrir el servicio ${nombreServicio}`, { cause: error });
   }
 }

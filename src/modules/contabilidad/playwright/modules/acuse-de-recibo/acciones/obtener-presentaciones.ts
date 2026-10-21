@@ -1,7 +1,9 @@
 import type { BrowserContext } from 'playwright';
+import type { Logger } from 'nestjs-pino';
+import { construirErrorParaLog } from '../../../common/errores/construir-error-para-log.js';
 import type { Presentacion } from './presentacion.js';
 
-export async function obtenerPresentaciones(contexto: BrowserContext, cuit: string): Promise<Presentacion[]> {
+export async function obtenerPresentaciones(logger: Logger, contexto: BrowserContext, cuit: string): Promise<Presentacion[]> {
   try {
     const orden = encodeURIComponent(JSON.stringify({ valor: 'FECHA_PRESENTACION', tipo: 'desc' }));
 
@@ -15,9 +17,13 @@ export async function obtenerPresentaciones(contexto: BrowserContext, cuit: stri
 
     const { data } = await respuestaLista.json();
 
-    return data?.resultados ?? [];
+    const presentaciones: Presentacion[] = data?.resultados ?? [];
+
+    logger.log({ cuit, cantidad: presentaciones.length, msg: 'Lista de presentaciones obtenida' });
+
+    return presentaciones;
   } catch (error) {
-    console.error('No se pudo obtener la lista de presentaciones', error);
+    logger.error({ err: construirErrorParaLog(error), cuit, msg: 'No se pudo obtener la lista de presentaciones' });
     throw new Error('No se pudo obtener la lista de presentaciones', { cause: error });
   }
 }

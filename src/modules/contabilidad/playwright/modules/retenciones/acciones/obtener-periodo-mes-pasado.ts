@@ -1,4 +1,6 @@
-export function obtenerPeriodoMesPasado(): string {
+import type { Logger } from 'nestjs-pino';
+
+export function obtenerPeriodoMesPasado(logger: Logger): string {
   const fecha = new Date();
   fecha.setMonth(fecha.getMonth() - 1);
 
@@ -7,7 +9,7 @@ export function obtenerPeriodoMesPasado(): string {
 
   const periodo = `${mesPasado}/${anioPasado}`;
 
-  console.log(`Periodo a buscar: ${periodo}`);
+  logger.log({ periodo, msg: 'Período a buscar' });
 
   return periodo;
 }

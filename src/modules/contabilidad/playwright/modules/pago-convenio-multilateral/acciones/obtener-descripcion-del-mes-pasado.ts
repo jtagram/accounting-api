@@ -1,4 +1,6 @@
-export function obtenerDescripcionDelMesPasado(): string {
+import type { Logger } from 'nestjs-pino';
+
+export function obtenerDescripcionDelMesPasado(logger: Logger): string {
   const fecha = new Date();
   fecha.setMonth(fecha.getMonth() - 1);
 
@@ -7,7 +9,7 @@ export function obtenerDescripcionDelMesPasado(): string {
 
   const descripcion = `CM-SOP${mesPasado}/${anioPasado}`;
 
-  console.log(`Descripción a buscar: ${descripcion}`);
+  logger.log({ descripcion, msg: 'Descripción a buscar' });
 
   return descripcion;
 }

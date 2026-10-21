@@ -2,9 +2,11 @@ import type { BrowserContext } from 'playwright';
 import { writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import type { Logger } from 'nestjs-pino';
+import { construirErrorParaLog } from '../../../common/errores/construir-error-para-log.js';
 import type { Vep } from './vep.js';
 
-export async function descargarComprobanteDePago(contexto: BrowserContext, vep: Vep): Promise<string> {
+export async function descargarComprobanteDePago(logger: Logger, contexto: BrowserContext, vep: Vep): Promise<string> {
   try {
     const respuestaTicket = await contexto.request.get(
       `https://seti.afip.gob.ar/setiweb/api/pagos/${vep.nroVep}/ticket?formato=PDF`,
@@ -19,9 +21,11 @@ export async function descargarComprobanteDePago(contexto: BrowserContext, vep: 
 
     await writeFile(rutaPdf, contenido);
 
+    logger.log({ nroVep: vep.nroVep, descripcion: vep.descripcion, msg: 'Comprobante de pago descargado' });
+
     return rutaPdf;
   } catch (error) {
-    console.error('No se pudo descargar el comprobante de pago', error);
+    logger.error({ err: construirErrorParaLog(error), nroVep: vep.nroVep, msg: 'No se pudo descargar el comprobante de pago' });
     throw new Error('No se pudo descargar el comprobante de pago', { cause: error });
   }
 }

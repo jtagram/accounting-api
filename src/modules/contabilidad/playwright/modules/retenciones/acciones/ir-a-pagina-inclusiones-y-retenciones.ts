@@ -1,6 +1,8 @@
 import type { Page } from 'playwright';
+import type { Logger } from 'nestjs-pino';
+import { construirErrorParaLog } from '../../../common/errores/construir-error-para-log.js';
 
-export async function irAPaginaInclusionesYRetenciones(pagina: Page): Promise<void> {
+export async function irAPaginaInclusionesYRetenciones(logger: Logger, pagina: Page): Promise<void> {
   try {
     await pagina.bringToFront();
 
@@ -12,9 +14,9 @@ export async function irAPaginaInclusionesYRetenciones(pagina: Page): Promise<vo
       .locator('a[href="srbPadron.do?method=buscarIn"]', { hasText: 'Inclusiones y Retenciones' })
       .click();
 
-    console.log('Inclusiones y Retenciones abierto');
+    logger.log({ msg: 'Inclusiones y Retenciones abierto' });
   } catch (error) {
-    console.error('No se pudo abrir Inclusiones y Retenciones', error);
+    logger.error({ err: construirErrorParaLog(error), msg: 'No se pudo abrir Inclusiones y Retenciones' });
     throw new Error('No se pudo abrir Inclusiones y Retenciones', { cause: error });
   }
 }

@@ -1,6 +1,8 @@
 import type { Page } from 'playwright';
+import type { Logger } from 'nestjs-pino';
+import { construirErrorParaLog } from '../../../common/errores/construir-error-para-log.js';
 
-export async function seleccionarMesAnterior(pagina: Page): Promise<void> {
+export async function seleccionarMesAnterior(logger: Logger, pagina: Page): Promise<void> {
   try {
     await pagina.locator('#fechaEmision').click();
 
@@ -8,16 +10,16 @@ export async function seleccionarMesAnterior(pagina: Page): Promise<void> {
 
     const rangoFechas = await pagina.locator('#fechaEmision').inputValue();
 
-    verificarMesAnterior(rangoFechas);
+    verificarMesAnterior(logger, rangoFechas);
 
-    console.log('Rango de fechas seleccionado:', rangoFechas);
+    logger.log({ rangoFechas, msg: 'Rango de fechas seleccionado' });
   } catch (error) {
-    console.error('No se pudo seleccionar el mes pasado', error);
+    logger.error({ err: construirErrorParaLog(error), msg: 'No se pudo seleccionar el mes pasado' });
     throw new Error('No se pudo seleccionar el mes pasado', { cause: error });
   }
 }
 
-function verificarMesAnterior(rangoFechas: string): void {
+function verificarMesAnterior(logger: Logger, rangoFechas: string): void {
   const hoy = new Date();
   const primerDiaMesPasado = new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1);
   const ultimoDiaMesPasado = new Date(hoy.getFullYear(), hoy.getMonth(), 0);
@@ -28,7 +30,7 @@ function verificarMesAnterior(rangoFechas: string): void {
   const rangoEsperado = `${formatearFecha(primerDiaMesPasado)} - ${formatearFecha(ultimoDiaMesPasado)}`;
 
   if (rangoFechas !== rangoEsperado) {
-    console.error(`El rango de fechas (${rangoFechas}) no corresponde al mes pasado (${rangoEsperado})`);
+    logger.error({ rangoFechas, rangoEsperado, msg: 'El rango de fechas no corresponde al mes pasado' });
     throw new Error(`El rango de fechas (${rangoFechas}) no corresponde al mes pasado (${rangoEsperado})`);
   }
 }

@@ -1,8 +1,10 @@
 import type { BrowserContext, Page } from 'playwright';
+import type { Logger } from 'nestjs-pino';
+import { construirErrorParaLog } from '../../../common/errores/construir-error-para-log.js';
 import { irAPaginaServicioComarb } from './ir-a-pagina-servicio-comarb.js';
 
-export async function irAPaginaSifereDdjj(contexto: BrowserContext, pagina: Page, cuit: string): Promise<Page> {
-  const paginaDdjj = await irAPaginaServicioComarb(contexto, pagina, 'comarb_sifereweb_ddjj');
+export async function irAPaginaSifereDdjj(logger: Logger, contexto: BrowserContext, pagina: Page, cuit: string): Promise<Page> {
+  const paginaDdjj = await irAPaginaServicioComarb(logger, contexto, pagina, 'comarb_sifereweb_ddjj');
 
   try {
     const selectorCuit = paginaDdjj.locator('select#cuit');
@@ -40,11 +42,11 @@ export async function irAPaginaSifereDdjj(contexto: BrowserContext, pagina: Page
 
     await paginaDdjj.locator('#tableMensualDj tbody tr').first().waitFor({ state: 'visible' });
 
-    console.log('Listado de DDJJ mensuales abierto');
+    logger.log({ cuit, msg: 'Listado de DDJJ mensuales abierto' });
 
     return paginaDdjj;
   } catch (error) {
-    console.error('No se pudo abrir el listado de DDJJ mensuales', error);
+    logger.error({ err: construirErrorParaLog(error), cuit, msg: 'No se pudo abrir el listado de DDJJ mensuales' });
     await paginaDdjj.close();
     throw new Error('No se pudo abrir el listado de DDJJ mensuales', { cause: error });
   }

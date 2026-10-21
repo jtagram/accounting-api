@@ -1,6 +1,8 @@
 import type { BrowserContext, Page } from 'playwright';
+import type { Logger } from 'nestjs-pino';
+import { construirErrorParaLog } from '../../common/errores/construir-error-para-log.js';
 
-export async function irAPaginaESicol(contexto: BrowserContext, pagina: Page): Promise<Page> {
+export async function irAPaginaESicol(logger: Logger, contexto: BrowserContext, pagina: Page): Promise<Page> {
   try {
     const servicioESicol = pagina
       .locator('#aplicaciones .contiene_servicio')
@@ -17,11 +19,11 @@ export async function irAPaginaESicol(contexto: BrowserContext, pagina: Page): P
 
     await paginaESicol.waitForLoadState('domcontentloaded', { timeout: 60000 });
 
-    console.log('e-Sicol abierto');
+    logger.log({ msg: 'e-Sicol abierto' });
 
     return paginaESicol;
   } catch (error) {
-    console.error('No se pudo abrir e-Sicol', error);
+    logger.error({ err: construirErrorParaLog(error), msg: 'No se pudo abrir e-Sicol' });
     throw new Error('No se pudo abrir e-Sicol', { cause: error });
   }
 }

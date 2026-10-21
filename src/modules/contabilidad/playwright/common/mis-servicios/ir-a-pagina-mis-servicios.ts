@@ -1,6 +1,8 @@
 import type { Page } from 'playwright';
+import type { Logger } from 'nestjs-pino';
+import { construirErrorParaLog } from '../errores/construir-error-para-log.js';
 
-export async function irAPaginaMisServicios(pagina: Page): Promise<void> {
+export async function irAPaginaMisServicios(logger: Logger, pagina: Page): Promise<void> {
   try {
     await pagina.locator('a[href="/portal/app/mis-servicios"]').click();
 
@@ -8,9 +10,9 @@ export async function irAPaginaMisServicios(pagina: Page): Promise<void> {
 
     await pagina.waitForLoadState('networkidle');
 
-    console.log('Mis servicios abierto');
+    logger.log({ msg: 'Mis servicios abierto' });
   } catch (error) {
-    console.error('No se pudo abrir Mis servicios', error);
+    logger.error({ err: construirErrorParaLog(error), msg: 'No se pudo abrir Mis servicios' });
     throw new Error('No se pudo abrir Mis servicios', { cause: error });
   }
 }

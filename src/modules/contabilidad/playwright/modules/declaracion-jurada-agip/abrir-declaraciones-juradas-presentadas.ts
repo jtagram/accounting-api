@@ -1,9 +1,11 @@
 import type { Page } from 'playwright';
+import type { Logger } from 'nestjs-pino';
+import { construirErrorParaLog } from '../../common/errores/construir-error-para-log.js';
 
 // En e-Sicol las DDJJ están agrupadas en una grilla (ExtJS). El encabezado del
 // grupo dice "Declaraciones Juradas Presentadas: N", donde N varía, y el id de
 // la grilla (gridview-1066) lo genera ExtJS, así que buscamos por el texto.
-export async function abrirDeclaracionesJuradasPresentadas(pagina: Page): Promise<void> {
+export async function abrirDeclaracionesJuradasPresentadas(logger: Logger, pagina: Page): Promise<void> {
   try {
     const grupoPresentadas = pagina
       .locator('tr.x-grid-group-hd')
@@ -25,9 +27,9 @@ export async function abrirDeclaracionesJuradasPresentadas(pagina: Page): Promis
 
     const titulo = (await grupoPresentadas.innerText()).trim();
 
-    console.log(`${titulo} (grupo expandido)`);
+    logger.log({ titulo, msg: `${titulo} (grupo expandido)` });
   } catch (error) {
-    console.error('No se pudo abrir Declaraciones Juradas Presentadas', error);
+    logger.error({ err: construirErrorParaLog(error), msg: 'No se pudo abrir Declaraciones Juradas Presentadas' });
     throw new Error('No se pudo abrir Declaraciones Juradas Presentadas', { cause: error });
   }
 }

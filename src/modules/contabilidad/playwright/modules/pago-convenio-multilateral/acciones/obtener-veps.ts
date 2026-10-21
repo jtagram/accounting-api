@@ -1,7 +1,9 @@
 import type { BrowserContext } from 'playwright';
+import type { Logger } from 'nestjs-pino';
+import { construirErrorParaLog } from '../../../common/errores/construir-error-para-log.js';
 import type { Vep } from './vep.js';
 
-export async function obtenerVeps(contexto: BrowserContext, cuit: string): Promise<Vep[]> {
+export async function obtenerVeps(logger: Logger, contexto: BrowserContext, cuit: string): Promise<Vep[]> {
   try {
     const orden = encodeURIComponent(JSON.stringify({ valor: 'vepId', tipo: 'desc' }));
 
@@ -15,9 +17,13 @@ export async function obtenerVeps(contexto: BrowserContext, cuit: string): Promi
 
     const { data } = await respuestaLista.json();
 
-    return data?.vepsConsultados ?? [];
+    const veps: Vep[] = data?.vepsConsultados ?? [];
+
+    logger.log({ cuit, cantidad: veps.length, msg: 'Lista de pagos obtenida' });
+
+    return veps;
   } catch (error) {
-    console.error('No se pudo obtener la lista de pagos', error);
+    logger.error({ err: construirErrorParaLog(error), cuit, msg: 'No se pudo obtener la lista de pagos' });
     throw new Error('No se pudo obtener la lista de pagos', { cause: error });
   }
 }

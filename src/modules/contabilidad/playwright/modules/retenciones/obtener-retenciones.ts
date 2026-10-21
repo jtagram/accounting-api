@@ -1,4 +1,5 @@
 import type { BrowserContext, Page } from 'playwright';
+import type { Logger } from 'nestjs-pino';
 import { descargado, noDisponible, type ResultadoObtencion } from '../../common/resultado/resultado-obtencion.js';
 import { irAPaginaConsultasSifere } from './acciones/ir-a-pagina-consultas-sifere.js';
 import { irAPaginaInclusionesYRetenciones } from './acciones/ir-a-pagina-inclusiones-y-retenciones.js';
@@ -10,35 +11,49 @@ import { existeDetalleDelPeriodo } from './acciones/existe-detalle-del-periodo.j
 import { abrirDetalleDelPeriodo } from './acciones/abrir-detalle-del-periodo.js';
 import { presionarLinkRetencionesYCoeficientes } from './acciones/presionar-link-retenciones-y-coeficientes.js';
 
-export async function obtenerRetenciones(contexto: BrowserContext, pagina: Page): Promise<ResultadoObtencion> {
-  const paginaConsultasSifere = await irAPaginaConsultasSifere(contexto, pagina);
+export async function obtenerRetenciones(logger: Logger, contexto: BrowserContext, pagina: Page): Promise<ResultadoObtencion> {
+  logger.log({ msg: 'Obteniendo retenciones' });
+
+  const paginaConsultasSifere = await irAPaginaConsultasSifere(logger, contexto, pagina);
 
   try {
-    await irAPaginaInclusionesYRetenciones(paginaConsultasSifere);
+    await irAPaginaInclusionesYRetenciones(logger, paginaConsultasSifere);
 
-    await buscarRetenciones(paginaConsultasSifere);
+    await buscarRetenciones(logger, paginaConsultasSifere);
 
-    await esperarResultadosDeBusqueda(paginaConsultasSifere);
+    await esperarResultadosDeBusqueda(logger, paginaConsultasSifere);
 
-    const periodo = obtenerPeriodoMesPasado();
+    const periodo = obtenerPeriodoMesPasado(logger);
 
-    if (!(await existeFilaDelPeriodo(paginaConsultasSifere, periodo))) {
-      return noDisponible(`No existe el período ${periodo}`);
+    if (!(await existeFilaDelPeriodo(logger, paginaConsultasSifere, periodo))) {
+      const motivo = `No existe el período ${periodo}`;
+
+      logger.warn({ motivo, msg: 'PDF no disponible: Retenciones' });
+
+      return noDisponible(motivo);
     }
 
-    if (!(await existeDetalleDelPeriodo(paginaConsultasSifere, periodo))) {
-      return noDisponible(`No existe el detalle para ${periodo}`);
+    if (!(await existeDetalleDelPeriodo(logger, paginaConsultasSifere, periodo))) {
+      const motivo = `No existe el detalle para ${periodo}`;
+
+      logger.warn({ motivo, msg: 'PDF no disponible: Retenciones' });
+
+      return noDisponible(motivo);
     }
 
-    await abrirDetalleDelPeriodo(paginaConsultasSifere, periodo);
+    await abrirDetalleDelPeriodo(logger, paginaConsultasSifere, periodo);
 
     const promesaDescarga = paginaConsultasSifere.waitForEvent('download');
 
-    await presionarLinkRetencionesYCoeficientes(paginaConsultasSifere);
+    await presionarLinkRetencionesYCoeficientes(logger, paginaConsultasSifere);
 
     const descarga = await promesaDescarga;
 
-    return descargado(await descarga.path());
+    const ruta = await descarga.path();
+
+    logger.log({ periodo, msg: 'Retenciones descargado' });
+
+    return descargado(ruta);
   } finally {
     await paginaConsultasSifere.close();
   }

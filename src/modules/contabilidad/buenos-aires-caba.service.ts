@@ -10,6 +10,7 @@ import { prepararCarpetaDestino } from './playwright/common/guardar-pdf/preparar
 import { comprimirCarpeta } from './playwright/common/comprimir/comprimir-carpeta.js';
 import { comprimirArchivosDeTexto } from './playwright/common/comprimir/comprimir-archivos-de-texto.js';
 import { formatearError } from './playwright/common/errores/formatear-error.js';
+import { construirErrorParaLog } from './playwright/common/errores/construir-error-para-log.js';
 import { generarResumen, type ResultadoPdf } from './generar-resumen.js';
 import type { RespuestaEjecucion } from './respuesta-ejecucion.js';
 import { obtenerComprobantesEmitidos } from './playwright/modules/comprobantes-emitidos/obtener-comprobantes-emitidos.js';
@@ -42,75 +43,75 @@ export class BuenosAiresCabaService {
 
       const pagina = await contexto.newPage();
 
-      await irAPaginaARCA(pagina);
+      await irAPaginaARCA(this.logger, pagina);
 
-      nombre = await iniciarSesionArca(pagina, usuario, clave);
+      nombre = await iniciarSesionArca(this.logger, pagina, usuario, clave);
 
-      await irAPaginaMisServicios(pagina);
+      await irAPaginaMisServicios(this.logger, pagina);
 
-      const carpeta = await prepararCarpetaDestino(nombre);
+      const carpeta = await prepararCarpetaDestino(this.logger, nombre);
 
       const resultados: ResultadoPdf[] = [];
 
-      const comprobantesEmitidos = await obtenerComprobantesEmitidos(contexto, pagina);
+      const comprobantesEmitidos = await obtenerComprobantesEmitidos(this.logger, contexto, pagina);
 
       if (comprobantesEmitidos.descargado) {
-        await guardarPdf(comprobantesEmitidos.ruta, nombre, 'comprobantes-emitidos');
+        await guardarPdf(this.logger, comprobantesEmitidos.ruta, nombre, 'comprobantes-emitidos');
         resultados.push({ etiqueta: 'Comprobantes emitidos', nombreArchivo: 'comprobantes-emitidos.pdf', descargado: true });
       } else {
         resultados.push({ etiqueta: 'Comprobantes emitidos', descargado: false, motivo: comprobantesEmitidos.motivo });
       }
 
-      const comprobantesRecibidos = await obtenerComprobantesRecibidos(contexto, pagina);
+      const comprobantesRecibidos = await obtenerComprobantesRecibidos(this.logger, contexto, pagina);
 
       if (comprobantesRecibidos.descargado) {
-        await guardarPdf(comprobantesRecibidos.ruta, nombre, 'comprobantes-recibidos');
+        await guardarPdf(this.logger, comprobantesRecibidos.ruta, nombre, 'comprobantes-recibidos');
         resultados.push({ etiqueta: 'Comprobantes recibidos', nombreArchivo: 'comprobantes-recibidos.pdf', descargado: true });
       } else {
         resultados.push({ etiqueta: 'Comprobantes recibidos', descargado: false, motivo: comprobantesRecibidos.motivo });
       }
 
-      const retenciones = await obtenerRetenciones(contexto, pagina);
+      const retenciones = await obtenerRetenciones(this.logger, contexto, pagina);
 
       if (retenciones.descargado) {
-        await guardarPdf(retenciones.ruta, nombre, 'retenciones');
+        await guardarPdf(this.logger, retenciones.ruta, nombre, 'retenciones');
         resultados.push({ etiqueta: 'Retenciones', nombreArchivo: 'retenciones.pdf', descargado: true });
       } else {
         resultados.push({ etiqueta: 'Retenciones', descargado: false, motivo: retenciones.motivo });
       }
 
-      const acuseDeRecibo = await obtenerAcuseDeRecibo(contexto, pagina);
+      const acuseDeRecibo = await obtenerAcuseDeRecibo(this.logger, contexto, pagina);
 
       if (acuseDeRecibo.descargado) {
-        await guardarPdf(acuseDeRecibo.ruta, nombre, 'acuse-de-recibo');
+        await guardarPdf(this.logger, acuseDeRecibo.ruta, nombre, 'acuse-de-recibo');
         resultados.push({ etiqueta: 'Acuse de recibo', nombreArchivo: 'acuse-de-recibo.pdf', descargado: true });
       } else {
         resultados.push({ etiqueta: 'Acuse de recibo', descargado: false, motivo: acuseDeRecibo.motivo });
       }
 
-      const pagoMonotributo = await obtenerPagoMonotributo(contexto, pagina);
+      const pagoMonotributo = await obtenerPagoMonotributo(this.logger, contexto, pagina);
 
       if (pagoMonotributo.descargado) {
-        await guardarPdf(pagoMonotributo.ruta, nombre, 'monotributo');
+        await guardarPdf(this.logger, pagoMonotributo.ruta, nombre, 'monotributo');
         resultados.push({ etiqueta: 'Pago de monotributo', nombreArchivo: 'monotributo.pdf', descargado: true });
       } else {
         resultados.push({ etiqueta: 'Pago de monotributo', descargado: false, motivo: pagoMonotributo.motivo });
       }
 
-      const pagoConvenioMultilateral = await obtenerPagoCmSop(contexto, pagina);
+      const pagoConvenioMultilateral = await obtenerPagoCmSop(this.logger, contexto, pagina);
 
       if (pagoConvenioMultilateral.descargado) {
-        await guardarPdf(pagoConvenioMultilateral.ruta, nombre, 'convenio-multilateral');
+        await guardarPdf(this.logger, pagoConvenioMultilateral.ruta, nombre, 'convenio-multilateral');
         resultados.push({ etiqueta: 'Pago de convenio multilateral', nombreArchivo: 'convenio-multilateral.pdf', descargado: true });
       } else {
         resultados.push({ etiqueta: 'Pago de convenio multilateral', descargado: false, motivo: pagoConvenioMultilateral.motivo });
       }
 
       // El usuario de ARCA es el CUIT, el mismo con el que se ingresa a AGIP.
-      const declaracionJurada = await obtenerDeclaracionJuradaAGIP(contexto, usuario, claveAgip);
+      const declaracionJurada = await obtenerDeclaracionJuradaAGIP(this.logger, contexto, usuario, claveAgip);
 
       if (declaracionJurada.descargado) {
-        await guardarPdf(declaracionJurada.ruta, nombre, 'declaracion-jurada-agip');
+        await guardarPdf(this.logger, declaracionJurada.ruta, nombre, 'declaracion-jurada-agip');
         resultados.push({ etiqueta: 'Declaración jurada de AGIP', nombreArchivo: 'declaracion-jurada-agip.pdf', descargado: true });
       } else {
         resultados.push({ etiqueta: 'Declaración jurada de AGIP', descargado: false, motivo: declaracionJurada.motivo });
@@ -130,7 +131,7 @@ export class BuenosAiresCabaService {
       return { nombre, exito: true, zip: comprimirCarpeta(carpeta, sanitizarNombre(nombre), [resumen]) };
     } catch (error) {
       this.logger.error({
-        err: { message: error instanceof Error ? error.message : String(error), stack: formatearError(error) },
+        err: construirErrorParaLog(error),
         nombre,
         msg: 'La ejecución falló',
       });

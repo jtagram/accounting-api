@@ -2,11 +2,13 @@ import type { BrowserContext } from 'playwright';
 import { writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import type { Logger } from 'nestjs-pino';
+import { construirErrorParaLog } from '../../common/errores/construir-error-para-log.js';
 
 // El PDF se muestra en el visor de Chrome, de donde no se puede sacar el
 // archivo. Lo pedimos de nuevo con la misma sesión (cookies del contexto)
 // y lo guardamos en disco.
-export async function descargarPdfDeclaracionJurada(contexto: BrowserContext, urlPdf: string): Promise<string> {
+export async function descargarPdfDeclaracionJurada(logger: Logger, contexto: BrowserContext, urlPdf: string): Promise<string> {
   try {
     const respuestaPdf = await contexto.request.get(urlPdf, { timeout: 60000 });
 
@@ -28,9 +30,11 @@ export async function descargarPdfDeclaracionJurada(contexto: BrowserContext, ur
       }
     }
 
+    logger.log({ ddjjId, msg: 'PDF de la DDJJ de AGIP descargado' });
+
     return rutaPdf;
   } catch (error) {
-    console.error('No se pudo descargar el PDF de la DDJJ de AGIP', error);
+    logger.error({ err: construirErrorParaLog(error), msg: 'No se pudo descargar el PDF de la DDJJ de AGIP' });
     throw new Error('No se pudo descargar el PDF de la DDJJ de AGIP', { cause: error });
   }
 }
