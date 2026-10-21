@@ -35,7 +35,8 @@ export class BuenosAiresCabaService {
 
     try {
       navegador = await chromium.launch({
-        headless: false,
+        // Oculto por defecto (servidor); PLAYWRIGHT_HEADLESS=false lo muestra para depurar en local.
+        headless: process.env.PLAYWRIGHT_HEADLESS !== 'false',
         slowMo: 100,
       });
 
