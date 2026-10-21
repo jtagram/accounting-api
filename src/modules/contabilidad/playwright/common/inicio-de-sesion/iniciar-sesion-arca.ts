@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { Logger } from "nestjs-pino";
 import { Page } from "playwright/types/test";
+import { CredencialesIncorrectasError } from "../errores/credenciales-incorrectas-error.js";
 
 @Injectable()
 export class IniciarSesionArca {
@@ -10,8 +11,6 @@ export class IniciarSesionArca {
         await this.irAPaginaARCA(pagina);
 
         const nombre = await this.iniciarSesion(pagina, cuit, claveFiscal);
-
-        await this.verificarErrorDeInicioDeSesion(pagina);
 
         await this.irAPaginaMisServicios(pagina);
 
@@ -49,6 +48,8 @@ export class IniciarSesionArca {
     
         throw new Error('No se pudo confirmar el login');
       } catch (error) {
+        await this.verificarErrorDeInicioDeSesion(pagina);
+
         this.logger.error({ err: error, msg: 'No se pudo iniciar sesión en ARCA' });
         throw new Error('No se pudo iniciar sesión en ARCA', { cause: error });
       }
@@ -78,23 +79,19 @@ export class IniciarSesionArca {
     }
     
     private async verificarErrorDeInicioDeSesion(pagina: Page): Promise<void> {
-      try {
-        const mensajeError = pagina.locator('#F1\\:msg');
-        if (await mensajeError.isVisible({ timeout: 5000 }).catch(() => false)) {
-          const texto = await mensajeError.innerText();
-    
-          if (texto.trim() === 'Clave o usuario incorrecto') {
-            this.logger.error('Clave o usuario incorrecto');
-            throw new Error('Clave o usuario incorrecto');
-          }
-    
-          this.logger.error('Error de login desconocido: ' + texto);
-          throw new Error('Error de login desconocido: ' + texto);
-        }
-      } catch (error) {
-        this.logger.error({ err: error, msg: 'No se pudo verificar el error de inicio de sesión' });
-        throw new Error('No se pudo verificar el error de inicio de sesión' , { cause: error });
+      const mensajeError = pagina.locator('#F1\\:msg');
+
+      if (!(await mensajeError.isVisible().catch(() => false))) return;
+
+      const texto = (await mensajeError.innerText()).trim();
+
+      if (texto === 'Clave o usuario incorrecto') {
+        this.logger.error({ msg: 'CUIT o clave fiscal incorrectos' });
+        throw new CredencialesIncorrectasError();
       }
+
+      this.logger.error({ texto, msg: 'Error de login desconocido' });
+      throw new Error('Error de login desconocido: ' + texto);
     }
 
     private async irAPaginaMisServicios( pagina: Page): Promise<void> {

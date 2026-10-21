@@ -23,7 +23,7 @@ export class ContabilidadController {
     @Body() dto: BuenosAiresDto,
     @Res({ passthrough: true }) respuesta: Response,
   ): Promise<StreamableFile> {
-    const resultado = await this.buenosAiresService.ejecutarBuenosAires(dto.cuit, dto.claveFiscal);
+    const resultado = await this.buenosAiresService.ejecutarBuenosAires(dto.clientes);
 
     return this.responderConZip(resultado, respuesta);
   }
@@ -34,11 +34,7 @@ export class ContabilidadController {
     @Body() dto: BuenosAiresCabaDto,
     @Res({ passthrough: true }) respuesta: Response,
   ): Promise<StreamableFile> {
-    const resultado = await this.buenosAiresCabaService.ejecutarBuenosAiresCaba(
-      dto.cuit,
-      dto.claveFiscal,
-      dto.claveCiudad,
-    );
+    const resultado = await this.buenosAiresCabaService.ejecutarBuenosAiresCaba(dto.clientes);
 
     return this.responderConZip(resultado, respuesta);
   }

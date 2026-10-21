@@ -4,10 +4,11 @@ import { BrowserContext, chromium, LaunchOptions, type Browser } from 'playwrigh
 import { GuardarPdf } from './playwright/common/guardar-pdf/guardar-pdf.js';
 import { sanitizarNombre } from './playwright/common/guardar-pdf/carpeta-destino.js';
 import { prepararCarpetaDestino } from './playwright/common/guardar-pdf/preparar-carpeta-destino.js';
-import { comprimirCarpeta } from './playwright/common/comprimir/comprimir-carpeta.js';
-import { comprimirArchivosDeTexto } from './playwright/common/comprimir/comprimir-archivos-de-texto.js';
+import { comprimirEntradas, type EntradaZip } from './playwright/common/comprimir/comprimir-entradas.js';
 import { formatearError } from './playwright/common/errores/formatear-error.js';
+import { CredencialesIncorrectasError } from './playwright/common/errores/credenciales-incorrectas-error.js';
 import type { RespuestaEjecucion } from './respuesta-ejecucion.js';
+import type { ClienteDto } from './dto/cliente.dto.js';
 import { ComprobantesEmitidos } from './playwright/modules/comprobantes-emitidos/comprobantes-emitidos.js';
 import { ComprobantesRecibidos } from './playwright/modules/comprobantes-recibidos/comprobantes-recibidos.js';
 import { Retenciones } from './playwright/modules/retenciones/retenciones.js';
@@ -32,7 +33,21 @@ export class BuenosAiresService {
     private readonly declaracionJuradaArca: DeclaracionJuradaArca,
   ) {}
 
-  async ejecutarBuenosAires(cuit: string, claveFiscal: string): Promise<RespuestaEjecucion> {
+  async ejecutarBuenosAires(clientes: ClienteDto[]): Promise<RespuestaEjecucion> {
+    const entradas: EntradaZip[] = [];
+
+    for (const { cuit, claveFiscal } of clientes) {
+      entradas.push(await this.procesarCliente(cuit, claveFiscal));
+    }
+
+    return {
+      nombre: 'PDFs Contables',
+      exito: entradas.every((entrada) => entrada.tipo === 'carpeta'),
+      zip: comprimirEntradas(entradas),
+    };
+  }
+
+  private async procesarCliente(cuit: string, claveFiscal: string): Promise<EntradaZip> {
     let navegador: Browser | undefined;
 
     try {
@@ -60,15 +75,13 @@ export class BuenosAiresService {
         await this.guardarPdf.guardarPdf(ruta, nombre);
       }
 
-      this.logger.log('Ejecución completada');
+      this.logger.log({ cuit, msg: 'Ejecución completada' });
 
-      return { nombre, exito: true, zip: comprimirCarpeta(carpeta, sanitizarNombre(nombre)) };
+      return { tipo: 'carpeta', ruta: carpeta, nombreEnZip: sanitizarNombre(nombre) };
     } catch (error) {
-      this.logger.error({ err: error, msg: 'La ejecución falló' });
+      this.logger.error({ err: error, cuit, msg: 'La ejecución falló' });
 
-      const archivoError = { nombre: `${sanitizarNombre(cuit)}.txt`, contenido: formatearError(error) };
-
-      return { nombre: cuit, exito: false, zip: comprimirArchivosDeTexto(sanitizarNombre(cuit), [archivoError]) };
+      return { tipo: 'texto', nombreEnZip: `${sanitizarNombre(cuit)}.txt`, contenido: error instanceof CredencialesIncorrectasError ? error.message : formatearError(error) };
     } finally {
       await navegador?.close().catch(() => undefined);
     }

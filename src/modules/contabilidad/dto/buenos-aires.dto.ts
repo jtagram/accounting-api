@@ -1,23 +1,16 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, Matches } from 'class-validator';
+import { Type } from 'class-transformer';
+import { ArrayNotEmpty, IsArray, ValidateNested } from 'class-validator';
+import { ClienteDto } from './cliente.dto.js';
 
 export class BuenosAiresDto {
   @ApiProperty({
-    description: 'CUIT del cliente, sin guiones. Es el usuario de ARCA.',
-    example: '20123456789',
+    description: 'Clientes a procesar, uno por uno. Todos van en el mismo ZIP.',
+    type: [ClienteDto],
   })
-  @Matches(/\S/, { message: 'cuit no puede contener solo espacios' })
-  @IsString({ message: 'cuit debe ser un texto' })
-  @IsNotEmpty({ message: 'cuit es obligatorio' })
-  cuit!: string;
-
-  @ApiProperty({
-    description: 'Clave fiscal de ARCA del cliente.',
-    example: 'clave-fiscal',
-    format: 'password',
-  })
-  @Matches(/\S/, { message: 'claveFiscal no puede contener solo espacios' })
-  @IsString({ message: 'claveFiscal debe ser un texto' })
-  @IsNotEmpty({ message: 'claveFiscal es obligatorio' })
-  claveFiscal!: string;
+  @ValidateNested({ each: true })
+  @Type(() => ClienteDto)
+  @ArrayNotEmpty({ message: 'clientes debe tener al menos un cliente' })
+  @IsArray({ message: 'clientes debe ser una lista' })
+  clientes!: ClienteDto[];
 }
