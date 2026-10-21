@@ -70,7 +70,18 @@ export async function irAPaginaServicioComarb(logger: Logger, contexto: BrowserC
 
       await paginaServicio.goto(servicio.url, { waitUntil: 'domcontentloaded', timeout: 60000 });
     } else {
-      throw new Error(`Respuesta inesperada del POST de autenticación SSO: ${respuestaSso.status()}`);
+      // Solo se guardan los primeros caracteres de la respuesta: es el HTML del error del sitio, no lo que enviamos.
+      const detalle = (await respuestaSso.text()).slice(0, 500);
+
+      logger.error({
+        nombreServicio,
+        estado: respuestaSso.status(),
+        tipoContenido: respuestaSso.headers()['content-type'],
+        detalle,
+        msg: 'Respuesta inesperada del POST de autenticación SSO',
+      });
+
+      throw new Error(`Respuesta inesperada del POST de autenticación SSO: ${respuestaSso.status()}. Respuesta: ${detalle}`);
     }
 
     logger.log({ cuit, nombreServicio, msg: `${nombreServicio} abierto (autenticación directa vía SSO)` });
