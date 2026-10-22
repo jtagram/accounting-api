@@ -206,13 +206,12 @@ export class DeclaracionJuradaArba {
     try {
       const accesoDeclaracionesJuradas = pagina
         .locator('li[data-nombre="Presentación de Declaraciones Juradas"]')
-        .getByRole('link');
+        .locator('a');
 
-      const promesaPestaniaNueva = contexto.waitForEvent('page', { timeout: 60000 });
-
-      await accesoDeclaracionesJuradas.click({ timeout: 60000 });
-
-      const paginaDeclaracionesJuradas = await promesaPestaniaNueva;
+      const [paginaDeclaracionesJuradas] = await Promise.all([
+        contexto.waitForEvent('page', { timeout: 60000 }),
+        accesoDeclaracionesJuradas.click({ timeout: 60000 }),
+      ]);
 
       await paginaDeclaracionesJuradas.waitForLoadState('domcontentloaded', { timeout: 60000 });
 
@@ -263,7 +262,7 @@ export class DeclaracionJuradaArba {
 
   private async abrirPestaniaPorCriteriosVarios(pagina: Page): Promise<void> {
     try {
-      await pagina.getByRole('link', { name: 'Por criterios varios', exact: true }).click({ timeout: 60000 });
+      await pagina.locator('a.ui-tabs-anchor', { hasText: 'Por criterios varios' }).click({ timeout: 60000 });
 
       this.logger.log({ msg: 'Pestaña Por criterios varios abierta' });
     } catch (error) {
