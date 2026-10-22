@@ -80,6 +80,8 @@ export class AcuseDeReciboArba {
 
   private async irAPaginaArba(contexto: BrowserContext): Promise<Page> {
     try {
+      await contexto.clearCookies({ domain: /arba\.gov\.ar$/ });
+
       const paginaArba = await contexto.newPage();
 
       await paginaArba.goto('https://web.arba.gov.ar/', { waitUntil: 'domcontentloaded', timeout: 60000 });
@@ -208,8 +210,13 @@ export class AcuseDeReciboArba {
         .locator('li[data-nombre="Presentación de Declaraciones Juradas"]')
         .locator('a');
 
+      const urlAnterior = pagina.url();
+
       const [paginaDeclaracionesJuradas] = await Promise.all([
-        contexto.waitForEvent('page', { timeout: 60000 }),
+        Promise.race([
+          contexto.waitForEvent('page', { timeout: 60000 }),
+          pagina.waitForURL((url) => url.toString() !== urlAnterior, { timeout: 60000 }).then(() => pagina),
+        ]),
         accesoDeclaracionesJuradas.click({ timeout: 60000 }),
       ]);
 
