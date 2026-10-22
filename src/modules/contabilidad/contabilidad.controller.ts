@@ -2,39 +2,53 @@ import { Body, Controller, HttpStatus, Post, Res, StreamableFile } from '@nestjs
 import { ApiTags } from '@nestjs/swagger';
 import type { Response } from 'express';
 import { sanitizarNombre } from './playwright/common/guardar-pdf/carpeta-destino.js';
-import { BuenosAiresService } from './buenos-aires.service.js';
-import { BuenosAiresCabaService } from './buenos-aires-caba.service.js';
-import { BuenosAiresDto } from './dto/buenos-aires.dto.js';
-import { BuenosAiresCabaDto } from './dto/buenos-aires-caba.dto.js';
+import { ArcaService } from './arca.service.js';
+import { ArcaAgipService } from './arca-agip.service.js';
+import { ArcaArbaService } from './arca-arba.service.js';
+import { ArcaDto } from './dto/arca.dto.js';
+import { ArcaAgipDto } from './dto/arca-agip.dto.js';
+import { ArcaArbaDto } from './dto/arca-arba.dto.js';
 import type { RespuestaEjecucion } from './respuesta-ejecucion.js';
-import { ApiBuenosAires, ApiBuenosAiresCaba } from './swagger/contabilidad.swagger.js';
+import { ApiArca, ApiArcaAgip, ApiArcaArba } from './swagger/contabilidad.swagger.js';
 
 @Controller('contabilidad')
 @ApiTags('Contabilidad')
 export class ContabilidadController {
   constructor(
-    private readonly buenosAiresService: BuenosAiresService,
-    private readonly buenosAiresCabaService: BuenosAiresCabaService,
+    private readonly arcaService: ArcaService,
+    private readonly arcaAgipService: ArcaAgipService,
+    private readonly arcaArbaService: ArcaArbaService,
   ) {}
 
-  @ApiBuenosAires()
-  @Post('buenos-aires')
-  async buenosAires(
-    @Body() dto: BuenosAiresDto,
+  @ApiArca()
+  @Post('arca')
+  async arca(
+    @Body() dto: ArcaDto,
     @Res({ passthrough: true }) respuesta: Response,
   ): Promise<StreamableFile> {
-    const resultado = await this.buenosAiresService.ejecutarBuenosAires(dto.clientes);
+    const resultado = await this.arcaService.ejecutarArca(dto.clientes);
 
     return this.responderConZip(resultado, respuesta);
   }
 
-  @ApiBuenosAiresCaba()
-  @Post('buenos-aires-caba')
-  async buenosAiresCaba(
-    @Body() dto: BuenosAiresCabaDto,
+  @ApiArcaAgip()
+  @Post('arca-agip')
+  async arcaAgip(
+    @Body() dto: ArcaAgipDto,
     @Res({ passthrough: true }) respuesta: Response,
   ): Promise<StreamableFile> {
-    const resultado = await this.buenosAiresCabaService.ejecutarBuenosAiresCaba(dto.clientes);
+    const resultado = await this.arcaAgipService.ejecutarArcaAgip(dto.clientes);
+
+    return this.responderConZip(resultado, respuesta);
+  }
+
+  @ApiArcaArba()
+  @Post('arca-arba')
+  async arcaArba(
+    @Body() dto: ArcaArbaDto,
+    @Res({ passthrough: true }) respuesta: Response,
+  ): Promise<StreamableFile> {
+    const resultado = await this.arcaArbaService.ejecutarArcaArba(dto.clientes);
 
     return this.responderConZip(resultado, respuesta);
   }

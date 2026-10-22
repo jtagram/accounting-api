@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsString, Matches } from 'class-validator';
 
-export class ClienteDto {
+export class ClienteArcaDto {
   @ApiProperty({
     description: 'CUIT del cliente, sin guiones. Es el usuario de ARCA.',
     example: '20123456789',

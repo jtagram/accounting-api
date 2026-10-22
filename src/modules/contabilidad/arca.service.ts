@@ -8,18 +8,18 @@ import { comprimirEntradas, type EntradaZip } from './playwright/common/comprimi
 import { formatearError } from './playwright/common/errores/formatear-error.js';
 import { CredencialesIncorrectasError } from './playwright/common/errores/credenciales-incorrectas-error.js';
 import type { RespuestaEjecucion } from './respuesta-ejecucion.js';
-import type { ClienteCabaDto } from './dto/cliente-caba.dto.js';
+import type { ClienteArcaDto } from './dto/cliente-arca.dto.js';
 import { ComprobantesEmitidos } from './playwright/modules/comprobantes-emitidos/comprobantes-emitidos.js';
 import { ComprobantesRecibidos } from './playwright/modules/comprobantes-recibidos/comprobantes-recibidos.js';
 import { Retenciones } from './playwright/modules/retenciones/retenciones.js';
-import { AcuseDeRecibo } from './playwright/modules/acuse-de-recibo/acuse-de-recibo.js';
+import { AcuseDeReciboArca } from './playwright/modules/acuse-de-recibo-arca/acuse-de-recibo-arca.js';
 import { PagoMonotributo } from './playwright/modules/pago-monotributo/pago-monotributo.js';
-import { PagoConvenioMultilateral } from './playwright/modules/pago-convenio-multilateral/pago-convenio-multilateral.js';
-import { DeclaracionJuradaAgip } from './playwright/modules/declaracion-jurada-agip/declaracion-jurada-agip.js';
+import { IngresosBrutos } from './playwright/modules/ingresos-brutos/ingresos-brutos.js';
+import { DeclaracionJuradaArca } from './playwright/modules/declaracion-jurada-arca/declaracion-jurada-arca.js';
 import { IniciarSesionArca } from './playwright/common/inicio-de-sesion/iniciar-sesion-arca.js';
 
 @Injectable()
-export class BuenosAiresCabaService {
+export class ArcaService {
   constructor(
     private readonly logger: Logger,
     private readonly iniciarSesionArca: IniciarSesionArca,
@@ -27,17 +27,17 @@ export class BuenosAiresCabaService {
     private readonly comprobantesEmitidos: ComprobantesEmitidos,
     private readonly comprobantesRecibidos: ComprobantesRecibidos,
     private readonly retenciones: Retenciones,
-    private readonly acuseDeRecibo: AcuseDeRecibo,
+    private readonly acuseDeReciboArca: AcuseDeReciboArca,
     private readonly pagoMonotributo: PagoMonotributo,
-    private readonly pagoConvenioMultilateral: PagoConvenioMultilateral,
-    private readonly declaracionJuradaAgip: DeclaracionJuradaAgip,
+    private readonly ingresosBrutos: IngresosBrutos,
+    private readonly declaracionJuradaArca: DeclaracionJuradaArca,
   ) {}
 
-  async ejecutarBuenosAiresCaba(clientes: ClienteCabaDto[]): Promise<RespuestaEjecucion> {
+  async ejecutarArca(clientes: ClienteArcaDto[]): Promise<RespuestaEjecucion> {
     const entradas: EntradaZip[] = [];
 
-    for (const { cuit, claveFiscal, claveCiudad } of clientes) {
-      entradas.push(await this.procesarCliente(cuit, claveFiscal, claveCiudad));
+    for (const { cuit, claveFiscal } of clientes) {
+      entradas.push(await this.procesarCliente(cuit, claveFiscal));
     }
 
     return {
@@ -47,7 +47,7 @@ export class BuenosAiresCabaService {
     };
   }
 
-  private async procesarCliente(cuit: string, claveFiscal: string, claveCiudad: string): Promise<EntradaZip> {
+  private async procesarCliente(cuit: string, claveFiscal: string): Promise<EntradaZip> {
     let navegador: Browser | undefined;
 
     try {
@@ -57,16 +57,16 @@ export class BuenosAiresCabaService {
 
       const pagina = await contexto.newPage();
 
-      const nombre = await this.iniciarSesionArca.iniciarSesionArca(pagina, cuit, claveFiscal);
+     let nombre = await this.iniciarSesionArca.iniciarSesionArca(pagina, cuit, claveFiscal);
 
       const rutas = [
         await this.comprobantesEmitidos.obtenerComprobantesEmitidos(contexto, pagina),
         await this.comprobantesRecibidos.obtenerComprobantesRecibidos(contexto, pagina),
         await this.retenciones.obtenerRetenciones(contexto, pagina),
-        await this.acuseDeRecibo.obtenerAcuseDeRecibo(contexto, pagina),
+        await this.acuseDeReciboArca.obtenerAcuseDeReciboArca(contexto, pagina),
         await this.pagoMonotributo.obtenerPagoMonotributo(contexto, pagina),
-        await this.pagoConvenioMultilateral.obtenerPagoConvenioMultilateral(contexto, pagina),
-        await this.declaracionJuradaAgip.obtenerDeclaracionJuradaAGIP(contexto, cuit, claveCiudad),
+        await this.ingresosBrutos.obtenerIngresosBrutos(contexto, pagina),
+        await this.declaracionJuradaArca.obtenerDeclaracionJuradaArca(contexto, pagina),
       ];
 
       const carpeta = await prepararCarpetaDestino(this.logger, nombre);
@@ -99,11 +99,12 @@ export class BuenosAiresCabaService {
     const paginaTemporal = await contextoTemporal.newPage();
     const userAgent = (await paginaTemporal.evaluate<string>('navigator.userAgent')).replace('HeadlessChrome', 'Chrome');
     await contextoTemporal.close();
-
+  
     return navegador.newContext({
       userAgent,
       locale: 'es-AR',
       timezoneId: 'America/Argentina/Buenos_Aires',
     });
   }
+  
 }

@@ -16,10 +16,10 @@ interface Presentacion {
 }
 
 @Injectable()
-export class AcuseDeRecibo {
+export class AcuseDeReciboArca {
   constructor(private readonly logger: Logger) {}
 
-  async obtenerAcuseDeRecibo(contexto: BrowserContext, pagina: Page): Promise<string> {
+  async obtenerAcuseDeReciboArca(contexto: BrowserContext, pagina: Page): Promise<string> {
     this.logger.log({ msg: 'Obteniendo acuse de recibo' });
 
     let paginaDdjj: Page | undefined;
@@ -42,7 +42,7 @@ export class AcuseDeRecibo {
         );
       }
 
-      const ruta = await this.descargarAcuseDeRecibo(contexto, presentacion);
+      const ruta = await this.descargarAcuseDeReciboArca(contexto, presentacion);
 
       this.logger.log({ periodo, msg: 'Acuse de recibo descargado' });
 
@@ -140,7 +140,7 @@ export class AcuseDeRecibo {
     return presentaciones.find((presentacion) => presentacion.periodo === periodo) ?? null;
   }
 
-  private async descargarAcuseDeRecibo(contexto: BrowserContext, presentacion: Presentacion): Promise<string> {
+  private async descargarAcuseDeReciboArca(contexto: BrowserContext, presentacion: Presentacion): Promise<string> {
     try {
       const cabeceras = encodeURIComponent(JSON.stringify({ Accept: 'application/pdf' }));
 

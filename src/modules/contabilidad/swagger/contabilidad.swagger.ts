@@ -13,12 +13,12 @@ const CONTENIDO_ZIP = {
 const DURACION =
   'La ejecución puede tardar varios minutos: la respuesta llega recién cuando termina toda la automatización.';
 
-function respuestasComunes(declaracionJurada: string) {
+function respuestasComunes(acuseDeRecibo: string, declaracionJurada: string) {
   return applyDecorators(
     ApiCreatedResponse({
       description:
         'Descarga `PDFs Contables.zip`. Adentro hay una carpeta por cada cliente que salió bien, con el nombre del cliente, ' +
-        `que contiene un archivo por documento (comprobantes emitidos y recibidos, retenciones, acuse de recibo, monotributo, convenio multilateral y ${declaracionJurada}): ` +
+        `que contiene un archivo por documento (comprobantes emitidos y recibidos, retenciones, ${acuseDeRecibo}, monotributo, ingresos brutos y ${declaracionJurada}): ` +
         'el PDF si se descargó, `<documento>-no-tiene.txt` si el cliente no lo tiene, o `<documento>-error.txt` con el stack trace si falló.',
       content: CONTENIDO_ZIP,
     }),
@@ -35,24 +35,61 @@ function respuestasComunes(declaracionJurada: string) {
   );
 }
 
-export function ApiBuenosAires() {
+export function ApiArca() {
   return applyDecorators(
     ApiOperation({
-      summary: 'Clientes que trabajan solo en Buenos Aires',
-      description: `Descarga los PDFs del mes anterior desde ARCA, para cada cliente de la lista, de a uno. La declaración jurada se obtiene de ARCA. ${DURACION}`,
+      summary: 'Obtener los PDFs contables de ARCA',
+      description:
+        `Descarga los PDFs del mes anterior desde ARCA, para cada cliente de la lista, de a uno. ${DURACION}\n\n` +
+        '**Origen de cada PDF:**\n\n' +
+        '- Comprobantes emitidos: ARCA\n' +
+        '- Comprobantes recibidos: ARCA\n' +
+        '- Retenciones: ARCA\n' +
+        '- Acuse de recibo: ARCA\n' +
+        '- Monotributo: ARCA\n' +
+        '- Ingresos brutos: ARCA\n' +
+        '- Declaración jurada: ARCA\n',
     }),
-    respuestasComunes('declaración jurada de ARCA'),
+    respuestasComunes('acuse de recibo de ARCA', 'declaración jurada de ARCA'),
   );
 }
 
-export function ApiBuenosAiresCaba() {
+export function ApiArcaAgip() {
   return applyDecorators(
     ApiOperation({
-      summary: 'Clientes que trabajan en Buenos Aires y CABA',
+      summary: 'Obtener los PDFs contables de ARCA y AGIP',
       description:
-        'Descarga los PDFs del mes anterior desde ARCA, para cada cliente de la lista, de a uno. La declaración jurada se obtiene de AGIP, ' +
-        `ingresando con el usuario de ARCA (el CUIT) y la clave ciudad. ${DURACION}`,
+        'Descarga los PDFs del mes anterior para cada cliente de la lista, de a uno. Ingresa a ARCA con el CUIT y la clave fiscal, ' +
+        `y a AGIP con el CUIT y la clave ciudad. ${DURACION}\n\n` +
+        '**Origen de cada PDF:**\n\n' +
+        '- Comprobantes emitidos: ARCA\n' +
+        '- Comprobantes recibidos: ARCA\n' +
+        '- Retenciones: ARCA\n' +
+        '- Acuse de recibo: ARCA\n' +
+        '- Monotributo: ARCA\n' +
+        '- Ingresos brutos: ARCA\n' +
+        '- Declaración jurada: AGIP\n',
     }),
-    respuestasComunes('declaración jurada de AGIP'),
+    respuestasComunes('acuse de recibo de ARCA', 'declaración jurada de AGIP'),
+  );
+}
+
+export function ApiArcaArba() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Obtener los PDFs contables de ARCA y ARBA',
+      description:
+        'Descarga los PDFs del mes anterior para cada cliente de la lista, de a uno. Ingresa a ARCA con el CUIT y la clave fiscal, ' +
+        `y a ARBA con el CUIT y la clave CIT. ${DURACION}\n\n` +
+        '**Origen de cada PDF:**\n\n' +
+        '- Comprobantes emitidos: ARCA\n' +
+        '- Comprobantes recibidos: ARCA\n' +
+        '- Retenciones: ARCA\n' +
+        '- Acuse de recibo: ARBA\n' +
+        '- Monotributo: ARCA\n' +
+        '- Ingresos brutos: ARCA\n' +
+        '- Declaración jurada: ARBA\n',
+    }),
+    respuestasComunes('acuse de recibo de ARBA', 'declaración jurada de ARBA'),
   );
 }

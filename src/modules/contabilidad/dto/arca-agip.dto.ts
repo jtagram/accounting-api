@@ -1,16 +1,16 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { ArrayNotEmpty, IsArray, ValidateNested } from 'class-validator';
-import { ClienteDto } from './cliente.dto.js';
+import { ClienteAgipDto } from './cliente-agip.dto.js';
 
-export class BuenosAiresDto {
+export class ArcaAgipDto {
   @ApiProperty({
     description: 'Clientes a procesar, uno por uno. Todos van en el mismo ZIP.',
-    type: [ClienteDto],
+    type: [ClienteAgipDto],
   })
   @ValidateNested({ each: true })
-  @Type(() => ClienteDto)
+  @Type(() => ClienteAgipDto)
   @ArrayNotEmpty({ message: 'clientes debe tener al menos un cliente' })
   @IsArray({ message: 'clientes debe ser una lista' })
-  clientes!: ClienteDto[];
+  clientes!: ClienteAgipDto[];
 }

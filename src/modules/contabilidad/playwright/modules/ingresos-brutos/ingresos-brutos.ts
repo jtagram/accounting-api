@@ -18,10 +18,10 @@ interface Vep {
 const PREFIJOS_DESCRIPCION = ['CM-SOP', 'IIBBBA'];
 
 @Injectable()
-export class PagoConvenioMultilateral {
+export class IngresosBrutos {
   constructor(private readonly logger: Logger) {}
 
-  async obtenerPagoConvenioMultilateral(contexto: BrowserContext, pagina: Page): Promise<string> {
+  async obtenerIngresosBrutos(contexto: BrowserContext, pagina: Page): Promise<string> {
     this.logger.log({ msg: 'Obteniendo pago de convenio multilateral' });
 
     let paginaDdjj: Page | undefined;
@@ -39,7 +39,7 @@ export class PagoConvenioMultilateral {
 
       if (!vep) {
         return await this.guardarTxt(
-          'pago-convenio-multilateral-no-tiene.txt',
+          'pago-ingresos-brutos-no-tiene.txt',
           `El usuario no tiene pago de convenio multilateral: no se encontró un pago para ${descripciones.join(' ni ')}`,
         );
       }
@@ -51,7 +51,7 @@ export class PagoConvenioMultilateral {
       return ruta;
     } catch (error) {
       this.logger.error({ err: error, msg: 'No se pudo obtener el pago de convenio multilateral' });
-      return await this.guardarTxt('pago-convenio-multilateral-error.txt', formatearError(error));
+      return await this.guardarTxt('pago-ingresos-brutos-error.txt', formatearError(error));
     } finally {
       await paginaDdjj?.close().catch(() => undefined);
     }
@@ -153,7 +153,7 @@ export class PagoConvenioMultilateral {
       }
 
       const contenido = await respuestaTicket.body();
-      const rutaPdf = join(await this.crearCarpetaTemporal(), 'pago-convenio-multilateral.pdf');
+      const rutaPdf = join(await this.crearCarpetaTemporal(), 'pago-ingresos-brutos.pdf');
 
       await writeFile(rutaPdf, contenido);
 
@@ -175,6 +175,6 @@ export class PagoConvenioMultilateral {
   }
 
   private async crearCarpetaTemporal(): Promise<string> {
-    return mkdtemp(join(tmpdir(), 'pago-convenio-multilateral-'));
+    return mkdtemp(join(tmpdir(), 'pago-ingresos-brutos-'));
   }
 }

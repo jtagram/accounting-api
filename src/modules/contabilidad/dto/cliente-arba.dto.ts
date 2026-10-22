@@ -1,9 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsString, Matches } from 'class-validator';
 
-export class ClienteCabaDto {
+export class ClienteArbaDto {
   @ApiProperty({
-    description: 'CUIT del cliente, sin guiones. Es el usuario de ARCA y también el de AGIP.',
+    description: 'CUIT del cliente, sin guiones. Es el usuario de ARCA y también el de ARBA.',
     example: '20123456789',
   })
   @Matches(/\S/, { message: 'cuit no puede contener solo espacios' })
@@ -22,12 +22,12 @@ export class ClienteCabaDto {
   claveFiscal!: string;
 
   @ApiProperty({
-    description: 'Clave de AGIP (Clave Ciudad) del cliente.',
-    example: 'clave-ciudad',
+    description: 'Clave CIT de ARBA del cliente.',
+    example: 'clave-cit',
     format: 'password',
   })
-  @Matches(/\S/, { message: 'claveCiudad no puede contener solo espacios' })
-  @IsString({ message: 'claveCiudad debe ser un texto' })
-  @IsNotEmpty({ message: 'claveCiudad es obligatorio' })
-  claveCiudad!: string;
+  @Matches(/\S/, { message: 'claveCit no puede contener solo espacios' })
+  @IsString({ message: 'claveCit debe ser un texto' })
+  @IsNotEmpty({ message: 'claveCit es obligatorio' })
+  claveCit!: string;
 }
