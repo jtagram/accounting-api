@@ -15,6 +15,8 @@ interface Vep {
   fechaDePago: string;
 }
 
+const PREFIJOS_DESCRIPCION = ['CM-SOP', 'IIBBBA'];
+
 @Injectable()
 export class PagoConvenioMultilateral {
   constructor(private readonly logger: Logger) {}
@@ -31,20 +33,20 @@ export class PagoConvenioMultilateral {
 
       const veps = await this.obtenerVeps(contexto, cuit);
 
-      const descripcion = this.obtenerDescripcionDelMesPasado();
+      const descripciones = this.obtenerDescripcionesDelMesPasado();
 
-      const vep = this.buscarVepPorDescripcion(veps, descripcion);
+      const vep = this.buscarVepPorDescripciones(veps, descripciones);
 
       if (!vep) {
         return await this.guardarTxt(
           'pago-convenio-multilateral-no-tiene.txt',
-          `El usuario no tiene pago de convenio multilateral: no se encontró un pago para ${descripcion}`,
+          `El usuario no tiene pago de convenio multilateral: no se encontró un pago para ${descripciones.join(' ni ')}`,
         );
       }
 
       const ruta = await this.descargarComprobanteDePago(contexto, vep);
 
-      this.logger.log({ descripcion, msg: 'Pago de convenio multilateral descargado' });
+      this.logger.log({ descripcion: vep.descripcion, msg: 'Pago de convenio multilateral descargado' });
 
       return ruta;
     } catch (error) {
@@ -122,22 +124,22 @@ export class PagoConvenioMultilateral {
     }
   }
 
-  private obtenerDescripcionDelMesPasado(): string {
-    const fecha = new Date();
-    fecha.setMonth(fecha.getMonth() - 1);
+  private obtenerDescripcionesDelMesPasado(): string[] {
+    const hoy = new Date();
+    const fecha = new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1);
 
     const mesPasado = String(fecha.getMonth() + 1).padStart(2, '0');
     const anioPasado = String(fecha.getFullYear()).slice(-2);
 
-    const descripcion = `CM-SOP${mesPasado}/${anioPasado}`;
+    const descripciones = PREFIJOS_DESCRIPCION.map((prefijo) => `${prefijo}${mesPasado}/${anioPasado}`);
 
-    this.logger.log({ descripcion, msg: 'Descripción a buscar' });
+    this.logger.log({ descripciones, msg: 'Descripciones a buscar' });
 
-    return descripcion;
+    return descripciones;
   }
 
-  private buscarVepPorDescripcion(veps: Vep[], descripcion: string): Vep | null {
-    return veps.find((vep) => vep.descripcion === descripcion) ?? null;
+  private buscarVepPorDescripciones(veps: Vep[], descripciones: string[]): Vep | null {
+    return veps.find((vep) => descripciones.includes(vep.descripcion)) ?? null;
   }
 
   private async descargarComprobanteDePago(contexto: BrowserContext, vep: Vep): Promise<string> {
