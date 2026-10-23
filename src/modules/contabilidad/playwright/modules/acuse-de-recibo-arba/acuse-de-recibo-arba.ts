@@ -195,7 +195,11 @@ export class AcuseDeReciboArba {
     try {
       const botonAccesosFrecuentes = pagina.getByRole('button', { name: /Mis accesos frecuentes/ });
 
-      await botonAccesosFrecuentes.click({ timeout: 60000 });
+      await botonAccesosFrecuentes.waitFor({ state: 'visible', timeout: 60000 });
+
+      if ((await botonAccesosFrecuentes.getAttribute('aria-expanded')) !== 'true') {
+        await botonAccesosFrecuentes.click({ timeout: 60000 });
+      }
 
       this.logger.log({ msg: 'Mis accesos frecuentes abierto' });
     } catch (error) {
@@ -226,8 +230,23 @@ export class AcuseDeReciboArba {
 
       return paginaDeclaracionesJuradas;
     } catch (error) {
-      this.logger.error({ err: error, msg: 'No se pudo abrir Presentación de Declaraciones Juradas' });
+      const diagnostico = await this.obtenerDiagnosticoAccesos(pagina);
+
+      this.logger.error({ err: error, ...diagnostico, msg: 'No se pudo abrir Presentación de Declaraciones Juradas' });
       throw new Error('No se pudo abrir Presentación de Declaraciones Juradas', { cause: error });
+    }
+  }
+
+  private async obtenerDiagnosticoAccesos(pagina: Page): Promise<Record<string, unknown>> {
+    try {
+      return {
+        url: pagina.url(),
+        accesosExpandido: await pagina.getByRole('button', { name: /Mis accesos frecuentes/ }).getAttribute('aria-expanded', { timeout: 2000 }),
+        accesosVisibles: await pagina.locator('li[data-nombre]').evaluateAll((elementos) => elementos.map((elemento) => elemento.getAttribute('data-nombre'))),
+        viewport: pagina.viewportSize(),
+      };
+    } catch {
+      return {};
     }
   }
 
