@@ -244,6 +244,8 @@ export class DeclaracionJuradaArba {
         accesosExpandido: await pagina.getByRole('button', { name: /Mis accesos frecuentes/ }).getAttribute('aria-expanded', { timeout: 2000 }),
         accesosVisibles: await pagina.locator('li[data-nombre]').evaluateAll((elementos) => elementos.map((elemento) => elemento.getAttribute('data-nombre'))),
         viewport: pagina.viewportSize(),
+        coincidencias: await pagina.getByText('Declaraciones Juradas').count(),
+        textoPagina: (await pagina.locator('body').innerText({ timeout: 2000 })).replace(/\s+/g, ' ').slice(0, 1500),
       };
     } catch {
       return {};
