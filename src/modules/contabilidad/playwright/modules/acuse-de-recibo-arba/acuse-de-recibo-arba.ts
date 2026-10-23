@@ -35,6 +35,8 @@ export class AcuseDeReciboArba {
 
       await this.abrirAccesosFrecuentes(paginaArba);
 
+      await this.expandirIngresosBrutos(paginaArba);
+
       paginaDeclaracionesJuradas = await this.irAPresentacionDeclaracionesJuradas(contexto, paginaArba);
 
       await this.abrirReimpresion(paginaDeclaracionesJuradas);
@@ -208,6 +210,30 @@ export class AcuseDeReciboArba {
     }
   }
 
+  private async expandirIngresosBrutos(pagina: Page): Promise<void> {
+    try {
+      const ingresosBrutos = pagina.locator('li[data-nombre="Ingresos Brutos"] > a');
+
+      await ingresosBrutos.waitFor({ state: 'visible', timeout: 60000 });
+
+      const presentacion = pagina.locator('li[data-nombre="Presentación de Declaraciones Juradas"]');
+
+      const yaVisible = await presentacion
+        .waitFor({ state: 'visible', timeout: 3000 })
+        .then(() => true)
+        .catch(() => false);
+
+      if (!yaVisible) {
+        await ingresosBrutos.click({ timeout: 20000 });
+      }
+
+      this.logger.log({ msg: 'Ingresos Brutos expandido' });
+    } catch (error) {
+      this.logger.error({ err: error, msg: 'No se pudo expandir Ingresos Brutos' });
+      throw new Error('No se pudo expandir Ingresos Brutos', { cause: error });
+    }
+  }
+
   private async irAPresentacionDeclaracionesJuradas(contexto: BrowserContext, pagina: Page): Promise<Page> {
     try {
       const accesoDeclaracionesJuradas = pagina
@@ -242,7 +268,7 @@ export class AcuseDeReciboArba {
       return {
         url: pagina.url(),
         accesosExpandido: await pagina.getByRole('button', { name: /Mis accesos frecuentes/ }).getAttribute('aria-expanded', { timeout: 2000 }),
-        accesosVisibles: await pagina.locator('li[data-nombre]').evaluateAll((elementos) => elementos.map((elemento) => elemento.getAttribute('data-nombre'))),
+        accesosVisibles: await pagina.locator('li[data-nombre]').evaluateAll((elementos) => elementos.map((elemento) => elemento.getAttribute('data-nombre')).join(' | ')),
         viewport: pagina.viewportSize(),
         coincidencias: await pagina.getByText('Declaraciones Juradas').count(),
         textoPagina: (await pagina.locator('body').innerText({ timeout: 2000 })).replace(/\s+/g, ' ').slice(0, 1500),
