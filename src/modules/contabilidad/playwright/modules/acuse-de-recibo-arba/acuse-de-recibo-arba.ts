@@ -217,7 +217,7 @@ export class AcuseDeReciboArba {
           contexto.waitForEvent('page', { timeout: 60000 }),
           pagina.waitForURL((url) => url.toString() !== urlAnterior, { timeout: 60000 }).then(() => pagina),
         ]),
-        accesoDeclaracionesJuradas.click({ timeout: 60000 }),
+        accesoDeclaracionesJuradas.click({ timeout: 20000 }),
       ]);
 
       await paginaDeclaracionesJuradas.waitForLoadState('domcontentloaded', { timeout: 60000 });
