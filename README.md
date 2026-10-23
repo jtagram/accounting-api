@@ -25,6 +25,32 @@
 
 [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
+## Autenticación y autorización
+
+Todos los endpoints de negocio (`POST /contabilidad/arca`, `/contabilidad/arca-agip` y
+`/contabilidad/arca-arba`) requieren un JWT emitido por `iam-api` para la aplicación
+`accounting-api` **y** el rol `ADMIN` en esa aplicación. Solo `GET /health` es público.
+Swagger (`/docs`) es accesible sin token; se usa el botón "Authorize" para cargar el Bearer.
+
+- Los tokens se verifican con RS256 contra las claves públicas de `iam-api`
+  (`GET {IAM_API_URL}/.well-known/jwks.json`, elegidas por el `kid` del token).
+- `401`: falta el header `Authorization: Bearer <token>`, o el token es inválido o expiró.
+- `403`: el token es de otra aplicación (claim `apps.application.name`) o no tiene el rol `ADMIN`
+  (claim `apps.application.roles`).
+
+## Variables de entorno
+
+Requeridas para arrancar (validadas en `src/common/config/env.validation.ts`; si falta alguna,
+el proceso no arranca):
+
+- `IAM_API_URL`: URL desde la que `accounting-api` alcanza a `iam-api` para descargar las claves
+  públicas JWKS (en el cluster: `http://iam-api.iam-api.svc.cluster.local:3000`). Si `iam-api` no
+  responde al arrancar, la app tampoco arranca.
+- `ACCOUNTING_API_APPLICATION_NAME`: nombre exacto (`apps_applications.name` en `iam-api`) de esta
+  aplicación, `accounting-api`. Lo usa `RolesGuard` para verificar que el token fue emitido para ella.
+
+Opcionales: `PORT` (por defecto `3000`) y `LOG_LEVEL` (por defecto `info`).
+
 ## Project setup
 
 ```bash

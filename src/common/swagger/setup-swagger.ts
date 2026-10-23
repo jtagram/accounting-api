@@ -10,6 +10,7 @@ export function setupSwagger(app: INestApplication): void {
       'Automatización contable: ingresa a ARCA (y a AGIP según el cliente), descarga los PDFs del mes anterior y los devuelve en un ZIP.',
     )
     .setVersion('1.0')
+    .addBearerAuth()
     .build();
 
   SwaggerModule.setup(SWAGGER_PATH, app, SwaggerModule.createDocument(app, config));

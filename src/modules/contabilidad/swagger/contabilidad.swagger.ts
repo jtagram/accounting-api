@@ -5,16 +5,18 @@ import {
   ApiInternalServerErrorResponse,
   ApiOperation,
 } from '@nestjs/swagger';
+import { ApiProtected } from '../../../common/swagger/api-protected.decorator.js';
 
 const CONTENIDO_ZIP = {
   'application/zip': { schema: { type: 'string', format: 'binary' } },
 };
 
 const DURACION =
-  'La ejecución puede tardar varios minutos: la respuesta llega recién cuando termina toda la automatización.';
+  'Requiere un JWT emitido por iam-api con el rol `ADMIN` en la aplicación accounting-api. La ejecución puede tardar varios minutos: la respuesta llega recién cuando termina toda la automatización.';
 
 function respuestasComunes(acuseDeRecibo: string, declaracionJurada: string) {
   return applyDecorators(
+    ApiProtected(),
     ApiCreatedResponse({
       description:
         'Descarga `PDFs Contables.zip`. Adentro hay una carpeta por cada cliente que salió bien, con el nombre del cliente, ' +

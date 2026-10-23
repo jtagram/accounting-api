@@ -1,6 +1,8 @@
 import { Body, Controller, HttpStatus, Post, Res, StreamableFile } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import type { Response } from 'express';
+import { Roles } from '../../common/guards/roles.decorator.js';
+import { Role } from '../../common/roles/role.enum.js';
 import { sanitizarNombre } from './playwright/common/guardar-pdf/carpeta-destino.js';
 import { ArcaService } from './arca.service.js';
 import { ArcaAgipService } from './arca-agip.service.js';
@@ -12,6 +14,7 @@ import type { RespuestaEjecucion } from './respuesta-ejecucion.js';
 import { ApiArca, ApiArcaAgip, ApiArcaArba } from './swagger/contabilidad.swagger.js';
 
 @Controller('contabilidad')
+@Roles(Role.ADMIN)
 @ApiTags('Contabilidad')
 export class ContabilidadController {
   constructor(

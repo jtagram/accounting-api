@@ -23,8 +23,11 @@ export function construirOpcionesDeLogger(nivel: string): { pinoHttp: Options } 
           'req.headers.authorization',
           'req.headers.cookie',
           'res.headers["set-cookie"]',
-          'req.body.ARCA_PASSWORD',
-          'req.body.AGIP_CLAVE',
+          // pino-http does not serialize the request body by default; this is a safety net
+          // so the clientes' claves are never written if a body serializer is ever added.
+          'req.body.clientes[*].claveFiscal',
+          'req.body.clientes[*].claveCiudad',
+          'req.body.clientes[*].claveCit',
         ],
         censor: '[REDACTED]',
       },
